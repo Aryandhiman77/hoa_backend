@@ -122,7 +122,14 @@ const storySchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["new", "reviewing", "approved", "rejected", "published"],
+      enum: [
+        "new",
+        "under_review",
+        "flagged",
+        "approved",
+        "published",
+        "archived",
+      ],
       default: "new",
     },
 
@@ -136,21 +143,9 @@ const storySchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
-
-    reviewedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
-
     reviewedAt: {
       type: Date,
       default: null,
-    },
-
-    isDeleted: {
-      type: Boolean,
-      default: false,
     },
   },
   {

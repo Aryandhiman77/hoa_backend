@@ -66,7 +66,7 @@ function customFileFilter(req, file, cb) {
   }
 }
 
-const storyUpload = multer({
+const upload = multer({
   storage,
   limits: {
     fileSize: MAX_FILE_SIZE,
@@ -75,4 +75,4 @@ const storyUpload = multer({
   fileFilter: customFileFilter,
 });
 
-export { storyUpload };
+export { upload };

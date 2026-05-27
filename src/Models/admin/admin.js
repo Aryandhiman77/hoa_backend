@@ -18,6 +18,6 @@ const admin = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Admin = new mongoose.model("admin", contactform);
+const Admin = mongoose.model("admin", contactform);
 
 export default Contact;

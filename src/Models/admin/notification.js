@@ -33,15 +33,7 @@ const notificationSchema = new mongoose.Schema(
 
     relatedModule: {
       type: String,
-      enum: [
-        "contact",
-        "user",
-        "order",
-        "payment",
-        "booking",
-        "product",
-        "general",
-      ],
+      enum: ["contact", "user", "order", "story", "general"],
       default: "general",
     },
 
