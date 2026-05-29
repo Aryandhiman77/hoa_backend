@@ -1,7 +1,7 @@
-import ApiResponse from "../utils/apiResponse.js";
-import { ApiError, BadRequestError } from "../utils/apiError.js";
+import ApiResponse from "../helpers/apiResponse.js";
+import { ApiError, BadRequestError } from "../helpers/apiError.js";
 import Contact from "../Models/submissionsQueue/contact.js";
-import AsyncHandler from "../utils/asyncHandler.js";
+import AsyncHandler from "../helpers/asyncHandler.js";
 import contactformsubmitted from "../html/contactformsubmitted.js";
 import Notification from "../Models/admin/notification.js";
 import Story from "../Models/submissionsQueue/storySubmission.js";
@@ -11,20 +11,21 @@ import NonLegalAdvocate from "../Models/submissionsQueue/nonLegalAdvocate.js";
 import nonLegalAdvocateSubmitted from "../html/nonLegalAdvocate.js";
 import AttorneySubmission from "../Models/submissionsQueue/attorneySubmission.js";
 import attorneySubmissionSubmitted from "../html/attorneySubmissionSubmitted.js";
+import mailsender from "../helpers/nodeMailer.js";
+import mailSender from "../helpers/nodeMailer.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
   const saveData = await Contact.create(req.data);
-
   if (!saveData) {
     throw new BadRequestError("Submission failed, please try again.");
   }
   // mail to submitter.
   await mailSender({
     from: "support@hoa.com",
-    to: req.data.email,
+    to: req.data.contact_email,
     subject: "Contact form submitted.",
-    html: contactformsubmitted(req.data.name),
+    html: contactformsubmitted(req.data.contact_name),
   });
   await Notification.create({
     title: "Contact Form Submitted",
@@ -37,7 +38,7 @@ export const saveContactForm = AsyncHandler(async (req, res) => {
   });
   return res
     .status(201)
-    .json(new ApiResponse.created("Contact form submitted.", saveData));
+    .json(ApiResponse.created("Contact form submitted.", null));
 });
 
 // 4.2 Submit Your Story Form
@@ -70,7 +71,7 @@ const uploadedSubmitYourStoryFiles = (files) => {
   );
 };
 
-export const submitYourStory = AsyncHandler(async (req, res, next) => {
+export const createStory = AsyncHandler(async (req, res, next) => {
   try {
     let storyObject = { ...req.data };
     if (req.files) {
@@ -85,23 +86,21 @@ export const submitYourStory = AsyncHandler(async (req, res, next) => {
     }
     await mailSender({
       from: "support@hoa.com",
-      to: req.data.email,
+      to: req.data.story_email,
       subject: "Story submitted",
       html: storySubmitted(saved.story_name),
     });
     /// admin side notification (uncomment if needed)
-    // await Notification.create({
-    //   title: "Story Form Submitted",
-    //   description: "A new user has submitted a story.",
-    //   type: "info",
-    //   receiverRole: "admin",
-    //   relatedModule: "story",
-    //   relatedId: saved._id,
-    //   actionUrl: `/admin/stories/${saved._id}`,
-    // });
-    return res
-      .status(201)
-      .json(new ApiResponse.created("Story submitted successfully.", saved));
+    await Notification.create({
+      title: "Story Form Submitted",
+      description: "A new user has submitted a story.",
+      type: "info",
+      receiverRole: "admin",
+      relatedModule: "story",
+      relatedId: saved._id,
+      actionUrl: `/admin/stories/${saved._id}`,
+    });
+    return res.status(201).json(ApiResponse.created("Story submitted.", saved));
   } catch (error) {
     if (req.files) {
       unlinkFiles(req.files);
@@ -204,15 +203,16 @@ export const createAttorneySubmission = AsyncHandler(async (req, res) => {
   });
 
   // Optional: admin side notification
-  // const notification = await Notification.create({
-  //   title: "Attorney Submission Received",
-  //   description: "A new attorney submission has been received.",
-  //   type: "info",
-  //   receiverRole: "admin",
-  //   relatedModule: "attorneySubmission",
-  //   relatedId: saved._id,
-  //   actionUrl: `/admin/attorney-submissions/${saved._id}`,
-  // });
+  const notification = await Notification.create({
+    title: "Attorney Submission Received",
+    description: "A new attorney submission has been received.",
+    type: "info",
+    receiverRole: "admin",
+    relatedModule: "attorneySubmission",
+    relatedId: saved._id,
+    actionUrl: `/admin/attorney-submissions/${saved._id}`,
+  });
+
   return res
     .status(201)
     .json(
@@ -247,16 +247,20 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
   const skip = req.pagination_query?.skip || 0;
   const page = req.pagination_query?.page || 0;
   const sorting = req.sorting_query || { createdAt: -1 };
-
   const [stories, totalDocuments] = await Promise.all([
-    Story.find(filters).sort(sorting).limit(limit).skip(skip).lean(),
+    Story.find(req.story_query)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .select(
+        "story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status",
+      )
+      .lean(),
 
-    Story.countDocuments(filters),
+    Story.countDocuments(req.story_query),
   ]);
 
   return res
     .status(201)
-    .json(new ApiResponse.paginated(stories, page + 1, limit, totalDocuments));
-
-
+    .json(ApiResponse.paginated(stories, page + 1, limit, totalDocuments));
 });

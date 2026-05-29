@@ -1,3 +1,5 @@
+import Joi from "joi";
+
 const pageSectionValidation = Joi.object({
   type: Joi.string().trim().required().messages({
     "string.empty": "Section type is required.",

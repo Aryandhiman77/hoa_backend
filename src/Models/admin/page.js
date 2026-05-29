@@ -112,7 +112,7 @@ const pageSchema = new mongoose.Schema(
 
 const Page = mongoose.model("Page", pageSchema);
 
-page.pre("save", function (next) {
+pageSchema.pre("save", function (next) {
   if (this.isModified("title")) {
     this.slug = slugify(this.name, { lower: true });
   }

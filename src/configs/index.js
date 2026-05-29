@@ -1,4 +1,3 @@
-
 export const APP_URL = `http://localhost:${process.env.PORT}`;
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const ACCESS_TOKEN = {
@@ -13,3 +12,7 @@ if (!MONGODB_URI) {
 if (Object.values(ACCESS_TOKEN).length === 0) {
   throw new Error("No ACCESS_TOKEN_EXPIRY found in .env");
 }
+
+export const appConfig = {
+  max_story_uploads_length: 10,
+};

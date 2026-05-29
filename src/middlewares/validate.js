@@ -1,4 +1,4 @@
-import { ApiError } from "../utils/apiError.js";
+import { ApiError } from "../helpers/apiError.js";
 import unlinkFiles from "../utils/fileUnlinker.js";
 
 const validate = (schema) => {
@@ -17,7 +17,12 @@ const validate = (schema) => {
         new ApiError(
           400,
           "Validation failed.",
-          error.details.map((err) => err.message),
+          error.details.map((err) => ({
+            message: err.message,
+            label: err.context.label,
+            key: err.context.key,
+          })),
+          "VALIDATION_FAILED",
         ),
       );
     }

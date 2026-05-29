@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slugify from "slugify";
 
 const storyUploadSchema = new mongoose.Schema(
   {
@@ -6,15 +7,18 @@ const storyUploadSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+
     fileUrl: {
       type: String,
       trim: true,
     },
+
     fileType: {
       type: String,
       enum: ["image", "document", "video", "other"],
       default: "other",
     },
+
     fileSize: {
       type: Number,
       default: 0,
@@ -37,6 +41,14 @@ const storySchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
+    },
+
+    story_slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      unique: true,
+      sparse: true,
     },
 
     story_phone: {
@@ -138,11 +150,17 @@ const storySchema = new mongoose.Schema(
       default: false,
     },
 
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
+
     adminNotes: {
       type: String,
       trim: true,
       default: null,
     },
+
     reviewedAt: {
       type: Date,
       default: null,
@@ -153,6 +171,20 @@ const storySchema = new mongoose.Schema(
   },
 );
 
+storySchema.pre("save", function (next) {
+  if (
+    (this.isModified("story_hoa_name") || !this.story_slug) &&
+    this.story_hoa_name
+  ) {
+    this.story_slug = slugify(this.story_hoa_name, {
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+  }
+
+  next();
+});
 const Story = mongoose.model("Story", storySchema);
 
 export default Story;

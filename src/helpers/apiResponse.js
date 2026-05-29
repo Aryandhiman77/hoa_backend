@@ -12,22 +12,17 @@ export default class ApiResponse {
   }
 
   static success(message = "Success", data = null, meta = {}) {
-    return new ApiResponse({ statusCode: 200, message, data, meta });
+    return new ApiResponse(200, message, data, meta);
   }
   static created(message = "Resource created", data = null) {
-    return new ApiResponse({ statusCode: 201, message, data });
+    return new ApiResponse(201, message, data);
   }
   static paginated(data, page, limit, totalResults) {
-    return new ApiResponse({
-      statusCode: 200,
-      message: "Data fetched.",
-      data,
-      meta: {
-        page,
-        limit,
-        totalResults,
-        totalPages: Math.ceil(totalResults / limit),
-      },
+    return new ApiResponse(200, "Data fetched.", data, {
+      page,
+      limit,
+      totalResults,
+      totalPages: Math.ceil(totalResults / limit),
     });
   }
 }

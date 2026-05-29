@@ -4,9 +4,10 @@ const PORT = process.env.PORT || 3000;
 import cors from "cors";
 import { connectDB } from "./src/configs/dbConnection.js";
 import appRoutes from "./src/routes/app.routes.js";
-import errorHandler from "./src/utils/errorHandler.js";
+import errorHandler from "./src/middlewares/errorHandler.js";
 import { APP_URL } from "./src/configs/index.js";
 import path from "path";
+import adminRouter from "./src/routes/admin.routes.js";
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -36,6 +37,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/public", appRoutes);
+app.use("/admin", adminRouter);
 
 app.use(errorHandler);
 
