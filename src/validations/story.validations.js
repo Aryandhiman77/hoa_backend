@@ -1,5 +1,4 @@
 import Joi from "joi";
-
 export const createStoryValidation = Joi.object({
   story_name: Joi.string().label("Name").trim().required().messages({
     "string.empty": "Name is required",
