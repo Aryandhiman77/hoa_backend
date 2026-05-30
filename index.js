@@ -8,6 +8,9 @@ import errorHandler from "./src/middlewares/errorHandler.js";
 import { APP_URL } from "./src/configs/index.js";
 import path from "path";
 import adminRouter from "./src/routes/admin.routes.js";
+import { config } from "dotenv";
+config();
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
