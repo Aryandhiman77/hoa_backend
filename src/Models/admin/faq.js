@@ -23,10 +23,7 @@ const faqSchema = new mongoose.Schema(
     sortOrder: {
       type: Number,
       default: 0,
-      unique: true,
-      min: [0, "Sort order cannot be negative."], // ensures positive
     },
-
     publish_status: {
       type: String,
       enum: ["draft", "published"],

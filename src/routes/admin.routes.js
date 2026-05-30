@@ -93,23 +93,28 @@ adminRouter
   .patch("/attorney/update-status/unpublish/:id", unPublishAttorney) //✅
   .patch("/attorney/update-status/archieve/:id", archieveAttorney); //✅
 
-// blogs api's
-adminRouter.post("/blog/create", validate(""), createBlog);
-
-// faq
+// faq //✅
 adminRouter
-  .post("/faq/create", validate(faqValidationSchema), createFaq)
-  .get("/faq/:id", getSingleFaq)
-  .get("/faq/listing", pagination, faqFilters, getFaqs)
+  .post("/faq/create", validate(faqValidationSchema), createFaq) //✅
+  .get("/faq/:id", getSingleFaq) //✅
+  .get(
+    "/faqs", //✅
+    pagination,
+    faqFilters,
+    getFaqs,
+  )
   .put(
-    "/faq/update-details/:id",
+    "/faq/update-details/:id", //✅
     validate(faqValidationSchema),
     updateFaqDetails,
   )
   .patch(
-    "/faq/update-status/:id",
+    "/faq/update-status/:id", //✅
     validate(faqStatusValidation),
     changeFaqStatus,
   );
+
+// blogs api's
+adminRouter.post("/blog/create", validate(""), createBlog);
 
 export default adminRouter;

@@ -1,8 +1,8 @@
 const faqFilters = (req, res, next) => {
-  const { search, status } = req.query;
+  const { search, publish_status } = req.query;
   let query = {};
   if (publish_status) {
-    query.status = status;
+    query.publish_status = publish_status;
   }
   if (search) {
     query.$or = [

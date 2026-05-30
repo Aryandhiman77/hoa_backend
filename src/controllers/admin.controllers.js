@@ -557,6 +557,7 @@ export const createBlog = asyncHandler(async (req, res) => {
 
 export const createFaq = asyncHandler(async (req, res) => {
   const created = await FAQ.create(req.data);
+
   if (!created) {
     throw new BadRequestError("Failed creating faq, please try again.");
   }
@@ -601,10 +602,10 @@ export const getFaqs = asyncHandler(async (req, res) => {
   const limit = req.pagination_query?.limit || 10;
   const skip = req.pagination_query?.skip || 0;
   const page = req.pagination_query?.page || 0;
-  const sorting = req.sorting_query || { sortOrder: 1 };
+  const sorting = req.sorting_query || { sortOrder: 1, createdAt: -1 };
 
   const [FAQs, totalDocuments] = await Promise.all([
-    await FAQ.find(req.faq_query).sort(sorting).limit(limit).skip(skip).lean(),
+    FAQ.find(req.faq_query).sort(sorting).limit(limit).skip(skip).lean(),
     FAQ.countDocuments(req.faq_query).lean(),
   ]);
   return res
@@ -619,7 +620,7 @@ export const changeFaqStatus = asyncHandler(async (req, res) => {
   const saved = await FAQ.findByIdAndUpdate(
     req.params.id,
     {
-      publish_status: req.data.status || "draft",
+      publish_status: req.data.publish_status || "draft",
     },
     { returnDocument: "after" },
   );
