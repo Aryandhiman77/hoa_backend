@@ -93,7 +93,14 @@ const nonLegalAdvocateSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["new", "under_review", "needs_followup", "closed"],
+      enum: [
+        "new",
+        "under_review",
+        "needs_follow_up",
+        "flagged",
+        "closed",
+        "archieved",
+      ],
       default: "new",
     },
   },

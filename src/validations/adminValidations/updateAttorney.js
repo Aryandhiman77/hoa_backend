@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-export const createAttorneySubmissionValidation = Joi.object({
+export const updateAttorneySubmissionValidation = Joi.object({
   attorney_name: Joi.string()
     .label("Attorney Name")
     .trim()
@@ -82,13 +82,22 @@ export const createAttorneySubmissionValidation = Joi.object({
     }),
 
   attorney_bio: Joi.string().label("Bio").trim().allow("", null).optional(),
+});
 
-  attorney_disclaimer_ack: Joi.boolean()
-    .label("Attorney Disclaimer Acknowledgement")
-    .valid(true)
+export const declineAttorneySchema = Joi.object({
+  declineReason: Joi.string()
+    .label("Decline reason")
+    .lowercase()
+    .min(10)
     .required()
     .messages({
-      "any.only": "Attorney disclaimer acknowledgement is required.",
-      "any.required": "Attorney disclaimer acknowledgement is required.",
+      "any.required": "Decline reason is required.",
+      "string.min": "Decline reason must be minimum 20 characters.",
+      "string.empty": "Decline reason cannot be empty.",
+      "string.base": "Decline reason must be a string.",
     }),
-});
+})
+  .required()
+  .messages({
+    "any.required": "Decline reason is required.",
+  });

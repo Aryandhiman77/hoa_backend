@@ -26,7 +26,7 @@ appRoutes.post("/contact-form", validate(contactSchema), saveContactForm); //✅
 appRoutes
   .post(
     "/submit-story",
-    uploadMultiple.array("media", appConfig.max_story_uploads_length),
+    uploadMultiple.array("uploads", appConfig.max_story_uploads_length),
     jsonParser(["story_issue_type"]),
     validate(createStoryValidation),
     createStory,
@@ -39,14 +39,15 @@ appRoutes
     getStoryByFilters,
   ); //✅
 
+//needs testing
 appRoutes.post(
-  "/non-legal-advocate",
-  uploadMultiple.array("media", appConfig.max_story_uploads_length),
+  "/non-legal-advocate/create",
+  uploadMultiple.array("uploads", appConfig.max_story_uploads_length),
   validate(createNonLegalAdvocateValidation),
   createNonLegalAdvocate,
 );
 
-appRoutes
+appRoutes //✅
   .post(
     "/attorney-submission",
     validate(createAttorneySubmissionValidation),

@@ -87,7 +87,15 @@ const attorneySubmissionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["new", "under_review", "approved", "published", "archieved"],
+      enum: [
+        "new",
+        "under_review",
+        "approved",
+        "published",
+        "archieved",
+        "declined",
+        "unpublished",
+      ],
       default: "new",
     },
 
@@ -95,18 +103,14 @@ const attorneySubmissionSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
-    approvedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
+    isApproved: {
+      type: Boolean,
     },
-
-    approvedAt: {
+    reviewedAt: {
       type: Date,
       default: null,
     },
-    rejectedReason: {
+    declineReason: {
       type: String,
       trim: true,
       default: null,
@@ -117,9 +121,6 @@ const attorneySubmissionSchema = new mongoose.Schema(
   },
 );
 
-const AttorneySubmission = mongoose.model(
-  "AttorneySubmission",
-  attorneySubmissionSchema,
-);
+const Attorney = mongoose.model("AttorneySubmission", attorneySubmissionSchema);
 
-export default AttorneySubmission;
+export default Attorney;

@@ -2,9 +2,11 @@ import asyncHandler from "../helpers/asyncHandler.js";
 import ApiResponse from "../helpers/apiResponse.js";
 import Page from "../Models/admin/page.js";
 import Story from "../Models/submissionsQueue/storySubmission.js";
+import Attorney from "../Models/submissionsQueue/attorneySubmission.js";
 import mailSender from "../helpers/nodeMailer.js";
 import storyApproved from "../html/storyApproved.js";
 import storyFlagged from "../html/storyFlagged.js";
+import FAQ from "../Models/admin/faq.js";
 import { BadRequestError, NotFoundError } from "../helpers/apiError.js";
 import { appConfig } from "../configs/index.js";
 import unlinkFiles from "../utils/fileUnlinker.js";
@@ -93,7 +95,6 @@ export const getStoriesByQuery = asyncHandler(async (req, res) => {
   const page = req.pagination_query?.page || 0;
   const sorting = req.sorting_query || { createdAt: -1 };
 
-  const details = await Story.find(req.story_query);
   const [stories, totalDocuments] = await Promise.all([
     await Story.find(req.story_query)
       .sort(sorting)
@@ -137,10 +138,13 @@ export const getStoryDetails = asyncHandler(async (req, res) => {
 });
 
 export const updateStoryDetails = asyncHandler(async (req, res) => {
-  if (!req.params.id) {
-    throw new BadRequestError("Failed to find story.");
-  }
-  const story = await Story.findById(req.params.id);
+  const storyId = req.params?.id;
+  if (!storyId) throw new BadRequestError("Story ID required.");
+
+  const story = await Story.findById(storyId);
+  if (!story) throw new NotFoundError("Story not found.");
+
+  // update editable fields
   story.story_name = req.data.story_name;
   story.story_city = req.data.story_city;
   story.story_state = req.data.story_state;
@@ -151,52 +155,37 @@ export const updateStoryDetails = asyncHandler(async (req, res) => {
   story.story_anonymous = req.data.story_anonymous;
   story.adminNotes = req.data.adminNotes;
 
-  if (req.data.status === "approved" && story.status !== "approved") {
-    story.status = "approved";
-    story.isApproved = true;
-    const updatedStory = await story.save();
-    await mailSender({
-      from: "support@hoa.com",
-      to: story.story_email,
-      subject: "Story approved.",
-      html: storyApproved(
-        story.story_name,
-        story.story_hoa_name,
-        `/hoa-horror-stories/${updatedStory.story_slug}`,
-      ),
-    });
-  } else if (req.data.status === "publish" && !story.isApproved) {
-    throw new BadRequestError("Story must be approved before publishing.");
-  } else if (req.data.status === "flagged") {
-    story.status = "flagged";
-    const updatedStory = await story.save();
-    await mailSender({
-      from: "support@hoa.com",
-      to: story.story_email,
-      subject: "Story approved.",
-      html: storyFlagged(story.story_name, story.story_hoa_name),
-    });
-  } else if (story.status === "archived") {
-    story.status = "archived";
-  } else if (story === "published" && isApproved) {
-    story.status = "published";
-    const updatedStory = await story.save();
-    await mailSender({
-      from: "support@hoa.com",
-      to: story.story_email,
-      subject: "Story approved.",
-      html: storyApproved(
-        story.story_name,
-        story.story_hoa_name,
-        `/hoa-horror-stories/${updatedStory.story_slug}`,
-      ),
-    });
+  // handle status changes
+  switch (req.data.status) {
+    case "approved":
+      story.status = "approved";
+      story.isApproved = true;
+      break;
+    case "published":
+      if (!story.isApproved) throw new BadRequestError("Must approve first.");
+      story.status = "published";
+      story.isPublished = true;
+      break;
+    case "flagged":
+      story.status = "flagged";
+      break;
+    case "unpublished":
+      story.status = "unpublished";
+      break;
+    case "archived":
+      story.status = "archived";
+      break;
+    default:
+      story.status = req.data.status || story.status;
   }
-  const saved = await story.save();
-  if (!saved) {
-    throw new BadRequestError("Failed to save updates, please try again.");
-  }
-  return res.status(200).json(ApiResponse.success("Story updated.", saved));
+
+  const savedStory = await story.save();
+
+  // await sendStoryEmail(savedStory, savedStory.status);
+
+  return res
+    .status(200)
+    .json(ApiResponse.success("Story updated.", savedStory));
 });
 
 const uploadedSubmitYourStoryFiles = (files) => {
@@ -328,4 +317,320 @@ export const removeMediaFromStory = asyncHandler(async (req, res, next) => {
   }
 
   return res.status(200).json(ApiResponse.success("Story media deleted."));
+});
+
+export const getAttorneysByQuery = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { createdAt: -1 };
+
+  const [attorneys, totalDocuments] = await Promise.all([
+    Attorney.find(req.attorney_query)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .select("-approvedAt -isPublished -attorney_disclaimer_ack")
+      .lean(),
+
+    Attorney.countDocuments(req.attorney_query),
+  ]);
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(attorneys, page + 1, limit, totalDocuments));
+});
+
+export const getSingleAttorney = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const attorney = await Attorney.findById(req.params.id);
+  if (!attorney) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  attorney.status = "under_review";
+  attorney.reviewedAt = Date.now();
+
+  const saved = await attorney.save();
+  if (!saved) {
+    throw new BadRequestError(
+      "Failed to find attorney.",
+      "Attorney not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  // trigger mail to user
+
+  return res.status(200).json(ApiResponse.success("Attorney found.", saved));
+});
+
+export const updateAttorneyDetails = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const updated = await Attorney.findByIdAndUpdate(req.params.id, req.data, {
+    returnDocument: "after",
+  });
+  if (!updated) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Attorney updated.", updated));
+});
+export const approveAttorney = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const updated = await Attorney.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: "approved",
+      isApproved: true,
+    },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Attorney updated.", updated));
+});
+export const declineAttorney = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const updated = await Attorney.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: "declined",
+      declineReason:
+        req.data?.declineReason || "Team didn't posted reason of rejection.",
+      isApproved: false,
+      isPublished: false,
+    },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Attorney updated.", updated));
+});
+export const publishAttorney = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const attorney = await Attorney.findById(req.params.id);
+  if (!attorney.isApproved) {
+    throw new NotFoundError(
+      "Approve attorney first.",
+      "Approve attorney first.",
+      "ATTORNEY_NOT_APPROVED",
+    );
+  }
+
+  attorney.isPublished = true;
+  attorney.status = "published";
+
+  const saved = await attorney.save();
+  if (!saved) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
+});
+export const unPublishAttorney = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const attorney = await Attorney.findById(req.params.id);
+  if (!attorney.isApproved) {
+    throw new BadRequestError(
+      "Approve attorney first.",
+      "Approve attorney first.",
+      "ATTORNEY_NOT_APPROVED",
+    );
+  }
+  if (!attorney.isPublished) {
+    throw new BadRequestError(
+      "Publish attorney first.",
+      "Publish attorney first.",
+      "ATTORNEY_NOT_PUBLISHED",
+    );
+  }
+
+  attorney.isPublished = false;
+  attorney.status = "unpublished";
+
+  const saved = await attorney.save();
+  if (!saved) {
+    throw new BadRequestError(
+      "Failed to publish Attorney.",
+      "Failed to publish Attorney.",
+      "FAILED_TO_PUBLISH_ATTORNEY",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
+});
+export const archieveAttorney = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const attorney = await Attorney.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: "archieved",
+    },
+    { returnDocument: "after" },
+  );
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Attorney not found.",
+      "Attorey not found",
+      "ATTORNEY_NOT_FOUND",
+    );
+  }
+  const saved = await attorney.save();
+  if (!saved) {
+    throw new BadRequestError(
+      "Failed to archieve Attorney.",
+      "Failed to archieve Attorney.",
+      "FAILED_TO_ARCHIEVE_ATTORNEY",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
+});
+
+export const createBlog = asyncHandler(async (req, res) => {
+  // const created = await
+});
+
+export const createFaq = asyncHandler(async (req, res) => {
+  const created = await FAQ.create(req.data);
+  if (!created) {
+    throw new BadRequestError("Failed creating faq, please try again.");
+  }
+  return res
+    .status(201)
+    .json(ApiResponse.created("FAQ created successfully.", created));
+});
+
+export const updateFaqDetails = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError("FAQ not found.", "FAQ not found", "FAQ_NOT_FOUND");
+  }
+  const saved = await FAQ.findByIdAndUpdate(req.params.id, req.data, {
+    returnDocument: "after",
+  });
+  if (!saved) {
+    throw new BadRequestError(
+      `Failed to update FAQ.`,
+      `Failed to update FAQ.`,
+      "FAILED_TO_UPDATE_FAQ",
+    );
+  }
+  return res
+    .status(201)
+    .json(ApiResponse.created("FAQ updated successfully.", saved));
+});
+
+export const getSingleFaq = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError("FAQ not found.", "FAQ not found", "FAQ_NOT_FOUND");
+  }
+  const faq = await FAQ.findById(req.params.id);
+  if (!faq) {
+    throw new NotFoundError("FAQ not found.", "FAQ not found", "FAQ_NOT_FOUND");
+  }
+  return res
+    .status(201)
+    .json(ApiResponse.created("FAQ updated successfully.", faq));
+});
+
+export const getFaqs = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { sortOrder: 1 };
+
+  const [FAQs, totalDocuments] = await Promise.all([
+    await FAQ.find(req.faq_query).sort(sorting).limit(limit).skip(skip).lean(),
+    FAQ.countDocuments(req.faq_query).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(FAQs, page + 1, limit, totalDocuments));
+});
+
+export const changeFaqStatus = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError("FAQ not found.", "FAQ not found", "FAQ_NOT_FOUND");
+  }
+  const saved = await FAQ.findByIdAndUpdate(
+    req.params.id,
+    {
+      publish_status: req.data.status || "draft",
+    },
+    { returnDocument: "after" },
+  );
+  if (!saved) {
+    throw new BadRequestError(
+      `Failed to update status of FAQ to '${req.data.status}'.`,
+      `Failed to update status of FAQ to '${req.data.status}'.`,
+      "FAILED_TO_UPDATE_STATUS",
+    );
+  }
+  return res
+    .status(201)
+    .json(ApiResponse.created("FAQ updated successfully.", saved));
 });

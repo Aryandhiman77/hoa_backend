@@ -1,4 +1,4 @@
-const homeOwnerAttorneysFilters = () => {
+const homeOwnerAttorneysFilters = (req, _, next) => {
   const { state, city, country, practice_area, keyword } = req.query;
   let query = { status: "approved", isPublished: true };
   if (state) {

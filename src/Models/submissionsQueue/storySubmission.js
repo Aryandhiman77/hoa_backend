@@ -140,6 +140,7 @@ const storySchema = new mongoose.Schema(
         "flagged",
         "approved",
         "published",
+        "unpublished",
         "archived",
       ],
       default: "new",

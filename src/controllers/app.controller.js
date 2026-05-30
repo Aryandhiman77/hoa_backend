@@ -9,7 +9,7 @@ import unlinkFiles from "../utils/fileUnlinker.js";
 import storySubmitted from "../html/storySubmitted.js";
 import NonLegalAdvocate from "../Models/submissionsQueue/nonLegalAdvocate.js";
 import nonLegalAdvocateSubmitted from "../html/nonLegalAdvocate.js";
-import AttorneySubmission from "../Models/submissionsQueue/attorneySubmission.js";
+import Attorney from "../Models/submissionsQueue/attorneySubmission.js";
 import attorneySubmissionSubmitted from "../html/attorneySubmissionSubmitted.js";
 import mailsender from "../helpers/nodeMailer.js";
 import mailSender from "../helpers/nodeMailer.js";
@@ -160,20 +160,20 @@ export const createNonLegalAdvocate = AsyncHandler(async (req, res, next) => {
     });
 
     // admin side notification (uncomment if needed)
-    // await Notification.create({
-    //   title: "Non-Legal-Advocate Added",
-    //   description: "A new Non-Legal-Advocate has been added.",
-    //   type: "info",
-    //   receiverRole: "admin",
-    //   relatedModule: "NonLegalAdvocate",
-    //   relatedId: saved._id,
-    //   actionUrl: `/admin/NonLegalAdvocate/${saved._id}`,
-    // });
+    await Notification.create({
+      title: "Non-Legal-Advocate Added",
+      description: "A new Non-Legal-Advocate has been added.",
+      type: "info",
+      receiverRole: "admin",
+      relatedModule: "non-legal-advocate",
+      relatedId: saved._id,
+      actionUrl: `/admin/non-legal-advocate/${saved._id}`,
+    });
 
     return res
       .status(201)
       .json(
-        new ApiResponse.created(
+        ApiResponse.created(
           "Your Non-Legal Advocate Request Has Been Submitted",
           saved,
         ),
@@ -188,7 +188,7 @@ export const createNonLegalAdvocate = AsyncHandler(async (req, res, next) => {
 
 // 4.4 Attorney Submission form
 export const createAttorneySubmission = AsyncHandler(async (req, res) => {
-  const saved = await AttorneySubmission.create(req.data);
+  const saved = await Attorney.create(req.data);
   if (!saved) {
     throw new BadRequestError(
       "Failed saving attorney submission, please try again.",
@@ -198,26 +198,24 @@ export const createAttorneySubmission = AsyncHandler(async (req, res) => {
   await mailSender({
     from: "support@hoa.com",
     to: saved.attorney_email,
-    subject: "Your Attorney Submission Has Been Received",
+    subject: "Your request for attorney submission has been submitted.",
     html: attorneySubmissionSubmitted(saved.attorney_name),
   });
 
   // Optional: admin side notification
-  const notification = await Notification.create({
+  await Notification.create({
     title: "Attorney Submission Received",
     description: "A new attorney submission has been received.",
     type: "info",
     receiverRole: "admin",
-    relatedModule: "attorneySubmission",
+    relatedModule: "attorney",
     relatedId: saved._id,
     actionUrl: `/admin/attorney-submissions/${saved._id}`,
   });
 
   return res
     .status(201)
-    .json(
-      new ApiResponse.created("Attorney submission saved successfully.", saved),
-    );
+    .json(ApiResponse.created("Attorney submission saved successfully."));
 });
 
 export const getHomeOwnerAttorneysByFilters = AsyncHandler(async (req, res) => {
@@ -227,19 +225,20 @@ export const getHomeOwnerAttorneysByFilters = AsyncHandler(async (req, res) => {
   const sorting = req.sorting_query || { createdAt: -1 };
 
   const [attorneys, totalDocuments] = await Promise.all([
-    AttorneySubmission.find(filters)
+    Attorney.find(req.hoa_query)
       .sort(sorting)
       .limit(limit)
       .skip(skip)
+      .select(
+        "-_id -createdAt -updatedAt -approvedAt -isPublished -status -attorney_disclaimer_ack",
+      )
       .lean(),
 
-    AttorneySubmission.countDocuments(filters),
+    Attorney.countDocuments(req.hoa_query),
   ]);
   return res
     .status(201)
-    .json(
-      new ApiResponse.paginated(attorneys, page + 1, limit, totalDocuments),
-    );
+    .json(ApiResponse.paginated(attorneys, page + 1, limit, totalDocuments));
 });
 
 export const getStoryByFilters = AsyncHandler(async (req, res) => {
@@ -253,7 +252,7 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
       .limit(limit)
       .skip(skip)
       .select(
-        "story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status",
+        "-_id story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status",
       )
       .lean(),
 

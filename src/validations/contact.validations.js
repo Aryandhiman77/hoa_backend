@@ -2,7 +2,7 @@ import Joi from "joi";
 
 const contactSchema = Joi.object({
   contact_name: Joi.string()
-    .label("Contact Name")
+    .label("Name")
     .lowercase()
     .min(2)
     .max(100)
@@ -13,16 +13,12 @@ const contactSchema = Joi.object({
       "any.required": "Brand name is required.",
       "string.empty": "Brand name cannot be empty.",
     }),
-  contact_email: Joi.string()
-    .label("Contact Email")
-    .email()
-    .lowercase()
-    .messages({
-      "string.email": "Please enter a valid email address.",
-      "string.empty": "Email cannot be empty.",
-    }),
+  contact_email: Joi.string().label("Email").email().lowercase().messages({
+    "string.email": "Please enter a valid email address.",
+    "string.empty": "Email cannot be empty.",
+  }),
   contact_phone: Joi.string()
-    .label("Phone Number")
+    .label("Phone")
     .optional()
     .pattern(/^\+?1?\d{10}$/)
     .messages({
@@ -30,7 +26,7 @@ const contactSchema = Joi.object({
       "string.empty": "Phone Number cannot be empty.",
     }),
   contact_subject: Joi.string()
-    .label("Contact Subject")
+    .label("Subject / Inquiry Type")
     .lowercase()
     .required()
     .messages({
@@ -38,7 +34,7 @@ const contactSchema = Joi.object({
       "string.empty": "Subject cannot be empty.",
     }),
   contact_message: Joi.string()
-    .label("Contact Message")
+    .label("Message")
     .lowercase()
     .min(20)
     .required()

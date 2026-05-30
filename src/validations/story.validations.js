@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 export const createStoryValidation = Joi.object({
-  story_name: Joi.string().label("Story Name").trim().required().messages({
+  story_name: Joi.string().label("Name").trim().required().messages({
     "string.empty": "Name is required",
     "any.required": "Name is required",
   }),
@@ -19,7 +19,7 @@ export const createStoryValidation = Joi.object({
     }),
 
   story_phone: Joi.string()
-    .label("Phone Number")
+    .label("Phone")
     .optional()
     .pattern(/^\+?1?\d{10}$/)
     .trim()
@@ -35,13 +35,13 @@ export const createStoryValidation = Joi.object({
   }),
 
   story_hoa_name: Joi.string()
-    .label("Home Owners Association Name")
+    .label("HOA / Community Name")
     .trim()
     .allow("", null)
     .optional(),
 
   story_issue_type: Joi.array()
-    .label("Issue type")
+    .label("Issue Type")
     .items(Joi.string().trim())
     .min(1)
     .required()
@@ -51,7 +51,7 @@ export const createStoryValidation = Joi.object({
     }),
 
   story_summary: Joi.string()
-    .label("Story summary")
+    .label("Story Summary")
     .trim()
     .max(300)
     .required()
@@ -61,17 +61,24 @@ export const createStoryValidation = Joi.object({
       "any.required": "Story summary is required",
     }),
 
-  story_body: Joi.string().label("Story body").trim().required().messages({
-    "string.empty": "Full story details are required",
-    "any.required": "Full story details are required",
-  }),
+  story_body: Joi.string()
+    .label("Full Story / Details")
+    .trim()
+    .required()
+    .messages({
+      "string.empty": "Full story details are required",
+      "any.required": "Full story details are required",
+    }),
 
-  story_anonymous: Joi.boolean().label("Remain Anonymous").required().messages({
-    "any.required": "Anonymous publish choice is required",
-  }),
+  story_anonymous: Joi.boolean()
+    .label("Publish Anonymously")
+    .required()
+    .messages({
+      "any.required": "Anonymous publish choice is required",
+    }),
 
   story_consent: Joi.boolean()
-    .label("Story Consent")
+    .label("Consent Checkbox")
     .valid(true)
     .required()
     .messages({
@@ -80,7 +87,7 @@ export const createStoryValidation = Joi.object({
     }),
 
   story_disclaimer: Joi.boolean()
-    .label("Story Disclaimer")
+    .label("Disclaimer Checkbox")
     .valid(true)
     .required()
     .messages({
@@ -91,7 +98,7 @@ export const createStoryValidation = Joi.object({
 
 // only for admin side
 export const updateStoryValidation = Joi.object({
-  story_name: Joi.string().label("Story Name").trim().required().messages({
+  story_name: Joi.string().label("Name").trim().required().messages({
     "string.empty": "Name is required",
     "any.required": "Name is required",
   }),
@@ -102,7 +109,7 @@ export const updateStoryValidation = Joi.object({
     "any.required": "State is required",
   }),
   story_hoa_name: Joi.string()
-    .label("Home Owners Association Name")
+    .label("HOA / Community Name")
     .trim()
     .allow("", null)
     .optional(),
@@ -118,7 +125,7 @@ export const updateStoryValidation = Joi.object({
     }),
 
   story_summary: Joi.string()
-    .label("Story summary")
+    .label("Story Summary")
     .trim()
     .max(300)
     .required()
@@ -128,16 +135,23 @@ export const updateStoryValidation = Joi.object({
       "any.required": "Story summary is required",
     }),
 
-  story_body: Joi.string().label("Story body").trim().required().messages({
-    "string.empty": "Full story details are required",
-    "any.required": "Full story details are required",
-  }),
-  story_anonymous: Joi.boolean().label("Remain Anonymous").required().messages({
-    "any.required": "Anonymous publish choice is required",
-  }),
+  story_body: Joi.string()
+    .label("Full Story / Details")
+    .trim()
+    .required()
+    .messages({
+      "string.empty": "Full story details are required",
+      "any.required": "Full story details are required",
+    }),
+  story_anonymous: Joi.boolean()
+    .label("Publish Anonymously")
+    .required()
+    .messages({
+      "any.required": "Anonymous publish choice is required",
+    }),
   status: Joi.string()
-    .label("Story Disclaimer")
-    .valid("flagged", "approved", "published", "archived")
+    .label("Status")
+    .valid("flagged", "approved", "published", "unpublished", "archived")
     .optional(),
 
   adminNotes: Joi.string()
