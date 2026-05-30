@@ -13,6 +13,7 @@ import unlinkFiles from "../utils/fileUnlinker.js";
 import { unlinkFilesFromServerUsingPath } from "../utils/unlinkFilesFromServerByPath.js";
 import fs from "fs";
 import { cwd } from "process";
+import BlogPost from "../Models/admin/blogPost.js";
 
 export const createPage = asyncHandler(async (req, res) => {
   try {
@@ -551,10 +552,6 @@ export const archieveAttorney = asyncHandler(async (req, res) => {
   return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
 });
 
-export const createBlog = asyncHandler(async (req, res) => {
-  // const created = await
-});
-
 export const createFaq = asyncHandler(async (req, res) => {
   const created = await FAQ.create(req.data);
 
@@ -593,9 +590,7 @@ export const getSingleFaq = asyncHandler(async (req, res) => {
   if (!faq) {
     throw new NotFoundError("FAQ not found.", "FAQ not found", "FAQ_NOT_FOUND");
   }
-  return res
-    .status(201)
-    .json(ApiResponse.created("FAQ updated successfully.", faq));
+  return res.status(201).json(ApiResponse.created("FAQ found.", faq));
 });
 
 export const getFaqs = asyncHandler(async (req, res) => {
@@ -634,4 +629,81 @@ export const changeFaqStatus = asyncHandler(async (req, res) => {
   return res
     .status(201)
     .json(ApiResponse.created("FAQ updated successfully.", saved));
+});
+
+export const createBlog = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new BadRequestError("Featured image is required.");
+  }
+  try {
+    const created = await BlogPost.create(req.data);
+    if (!created) {
+      throw new BadRequestError("Failed creating blog, please try again.");
+    }
+    return res
+      .status(201)
+      .json(ApiResponse.created("Blog created successfully.", created));
+  } catch (error) {
+    if (req.file) {
+      unlinkFiles(req.file);
+    }
+    next(error);
+  }
+});
+
+export const getBlogs = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { createdAt: -1 };
+
+  const [blogPosts, totalDocuments] = await Promise.all([
+    BlogPost.find(req.blog_query).sort(sorting).limit(limit).skip(skip).lean(),
+    BlogPost.countDocuments(req.blog_query).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(blogPosts, page + 1, limit, totalDocuments));
+});
+
+export const getSingleBlog = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Blog not found.",
+      "Blog not found",
+      "Blog_NOT_FOUND",
+    );
+  }
+  const blogPost = await BlogPost.findById(req.params.id);
+  if (!blogPost) {
+    throw new NotFoundError(
+      "Blog not found.",
+      "Blog not found",
+      "BLOG_NOT_FOUND",
+    );
+  }
+  return res.status(201).json(ApiResponse.created("Blog found.", blogPost));
+});
+
+export const updateBlogDetails = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Blog not found.",
+      "Blog not found",
+      "BLOG_NOT_FOUND",
+    );
+  }
+  const saved = await FAQ.findByIdAndUpdate(req.params.id, req.data, {
+    returnDocument: "after",
+  });
+  if (!saved) {
+    throw new BadRequestError(
+      `Failed to update blog.`,
+      `Failed to update blog.`,
+      "FAILED_TO_UPDATE_BLOG",
+    );
+  }
+  return res
+    .status(201)
+    .json(ApiResponse.created("Blog updated successfully.", saved));
 });

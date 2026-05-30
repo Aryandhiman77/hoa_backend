@@ -25,6 +25,9 @@ import {
   updateFaqDetails,
   getFaqs,
   getSingleFaq,
+  getBlogs,
+  getSingleBlog,
+  updateBlogDetails,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -42,6 +45,12 @@ import {
   faqValidationSchema,
 } from "../validations/adminValidations/faq.js";
 import faqFilters from "../middlewares/filters/admin/faqFilters.js";
+import {
+  blogValidationSchema,
+  updateBlogValidation,
+} from "../validations/adminValidations/blogPost.js";
+import { jsonParser } from "../utils/jsonParser.js";
+import sortingFilters from "../middlewares/filters/common/sorting.js";
 const adminRouter = Router();
 
 //6.Pages - title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status
@@ -115,6 +124,19 @@ adminRouter
   );
 
 // blogs api's
-adminRouter.post("/blog/create", validate(""), createBlog);
+adminRouter.post(
+  "/blog/create",
+  upload.single("featured_image"),
+  jsonParser(["tags"]),
+  validate(blogValidationSchema),
+  createBlog,
+);
+adminRouter.get("/blogs", pagination, sortingFilters, getBlogs);
+adminRouter.get("/blog/:id", getSingleBlog);
 
+adminRouter.post(
+  "/blog/update-details",
+  validate(blogValidationSchema),
+  updateBlogDetails,
+);
 export default adminRouter;

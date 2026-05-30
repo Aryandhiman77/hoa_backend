@@ -13,6 +13,9 @@ const validate = (schema) => {
       if (req.files) {
         unlinkFiles(req.files);
       }
+      if (req.file) {
+        unlinkFiles(req.file);
+      }
       res.status(400).json(
         new ApiError(
           400,
