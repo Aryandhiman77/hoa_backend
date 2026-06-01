@@ -1,12 +1,18 @@
+import dns from "dns";
 import nodemailer from "nodemailer";
 
+dns.setDefaultResultOrder("ipv4first");
 //todo : transporter to be configured for gmail
 const transporter = nodemailer.createTransport({
+  port: 587,
+  secure: false,
+  family: 4,
   service: "gmail",
   auth: {
     user: process.env.COMPANY_GMAIL,
     pass: process.env.GOOGLE_APP_PASSWORD,
   },
+  requireTLS: true,
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 10000,
