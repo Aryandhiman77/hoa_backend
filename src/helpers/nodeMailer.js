@@ -7,6 +7,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.COMPANY_GMAIL,
     pass: process.env.GOOGLE_APP_PASSWORD,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 export default async function mailSender({ from, to, subject, html }) {
   const info = await transporter.sendMail({
