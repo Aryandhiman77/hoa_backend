@@ -10,6 +10,7 @@ import {
   getStoryByFilters,
   getBlogListing,
   getSingleBlog,
+  getFaqs,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -22,6 +23,7 @@ import { storyFilters } from "../middlewares/filters/storyFilters.js";
 import { jsonParser } from "../utils/jsonParser.js";
 import { appConfig } from "../configs/index.js";
 import { blogSearchFilter } from "../middlewares/filters/blogSearchFilter.js";
+import faqFilters from "../middlewares/filters/faqFilters.js";
 const appRoutes = express.Router();
 
 appRoutes.post("/contact-form", validate(contactSchema), saveContactForm); //✅
@@ -73,4 +75,10 @@ appRoutes.get(
   getBlogListing,
 );
 appRoutes.get("/blog/:id", getSingleBlog);
+
+appRoutes.get(
+  "/faqs",
+  faqFilters,
+  getFaqs,
+);
 export default appRoutes;

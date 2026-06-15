@@ -15,27 +15,6 @@ import fs from "fs";
 import { cwd } from "process";
 import BlogPost from "../Models/admin/blogPost.js";
 
-export const createPage = asyncHandler(async (req, res) => {
-  try {
-    if (!req.file) {
-      throw new BadRequestError("Featured image is required.");
-    }
-    const saved = await Page.create(req.data);
-    if (!saved) {
-      throw new BadRequestError("Failed saving page, please try again.");
-    }
-    return res
-      .status(201)
-      .json(ApiResponse.created("Page saved successfully.", saved));
-  } catch (error) {
-    if (req.file) {
-      unlinkFiles(req.file);
-    }
-    next(error);
-  }
-});
-
-//
 export const updateStory = asyncHandler(async (req, res) => {
   try {
     if (req.params.id) {
@@ -805,6 +784,26 @@ export const createResource = asyncHandler(async (req, res) => {
     return res
       .status(201)
       .json(ApiResponse.created("Resource created successfully.", created));
+  } catch (error) {
+    if (req.file) {
+      unlinkFiles(req.file);
+    }
+    next(error);
+  }
+});
+
+export const createPage = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      throw new BadRequestError("Featured image is required.");
+    }
+    const saved = await Page.create(req.data);
+    if (!saved) {
+      throw new BadRequestError("Failed saving page, please try again.");
+    }
+    return res
+      .status(201)
+      .json(ApiResponse.created("Page saved successfully.", saved));
   } catch (error) {
     if (req.file) {
       unlinkFiles(req.file);

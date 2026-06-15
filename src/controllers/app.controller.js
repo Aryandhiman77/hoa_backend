@@ -14,6 +14,7 @@ import attorneySubmissionSubmitted from "../html/attorneySubmissionSubmitted.js"
 import mailsender from "../helpers/nodeMailer.js";
 import mailSender from "../helpers/nodeMailer.js";
 import BlogPost from "../Models/admin/blogPost.js";
+import FAQ from "../Models/admin/faq.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -308,4 +309,17 @@ export const getSingleBlog = AsyncHandler(async (req, res) => {
     );
   }
   return res.status(200).json(ApiResponse.success("Blog found.", blog));
+});
+
+export const getFaqs = AsyncHandler(async (req, res) => {
+  const [faqs, totalDocuments] = await Promise.all([
+    FAQ.find(req.faq_query)
+      .sort({ sortOrder: "asc" })
+      .select("-_id -publish_status -sortOrder -createdAt -updatedAt -__v")
+      .lean(),
+
+    FAQ.countDocuments(req.faq_query),
+  ]);
+
+  return res.status(201).json(ApiResponse.success("Data fetched.", faqs));
 });
