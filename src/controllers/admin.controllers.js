@@ -420,7 +420,7 @@ export const approveAttorney = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(ApiResponse.success("Attorney updated.", updated));
+    .json(ApiResponse.success("Attorney approved.", updated));
 });
 export const declineAttorney = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
@@ -450,7 +450,7 @@ export const declineAttorney = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(ApiResponse.success("Attorney updated.", updated));
+    .json(ApiResponse.success("Attorney declined.", updated));
 });
 export const publishAttorney = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
@@ -480,7 +480,9 @@ export const publishAttorney = asyncHandler(async (req, res) => {
       "ATTORNEY_NOT_FOUND",
     );
   }
-  return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
+  return res
+    .status(200)
+    .json(ApiResponse.success("Attorney published.", saved));
 });
 export const unPublishAttorney = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
@@ -517,7 +519,9 @@ export const unPublishAttorney = asyncHandler(async (req, res) => {
       "FAILED_TO_PUBLISH_ATTORNEY",
     );
   }
-  return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
+  return res
+    .status(200)
+    .json(ApiResponse.success("Attorney unpublished.", saved));
 });
 export const archieveAttorney = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
@@ -549,7 +553,9 @@ export const archieveAttorney = asyncHandler(async (req, res) => {
       "FAILED_TO_ARCHIEVE_ATTORNEY",
     );
   }
-  return res.status(200).json(ApiResponse.success("Attorney updated.", saved));
+  return res
+    .status(200)
+    .json(ApiResponse.success("Attorney archieved.", saved));
 });
 
 export const createFaq = asyncHandler(async (req, res) => {
@@ -579,7 +585,7 @@ export const updateFaqDetails = asyncHandler(async (req, res) => {
   }
   return res
     .status(201)
-    .json(ApiResponse.created("FAQ updated successfully.", saved));
+    .json(ApiResponse.success("FAQ updated successfully.", saved));
 });
 
 export const getSingleFaq = asyncHandler(async (req, res) => {
@@ -590,7 +596,7 @@ export const getSingleFaq = asyncHandler(async (req, res) => {
   if (!faq) {
     throw new NotFoundError("FAQ not found.", "FAQ not found", "FAQ_NOT_FOUND");
   }
-  return res.status(201).json(ApiResponse.created("FAQ found.", faq));
+  return res.status(201).json(ApiResponse.success("FAQ found.", faq));
 });
 
 export const getFaqs = asyncHandler(async (req, res) => {
@@ -628,26 +634,34 @@ export const changeFaqStatus = asyncHandler(async (req, res) => {
   }
   return res
     .status(201)
-    .json(ApiResponse.created("FAQ updated successfully.", saved));
+    .json(ApiResponse.success("FAQ updated successfully.", saved));
 });
 
 export const createBlog = asyncHandler(async (req, res) => {
   if (!req.file) {
     throw new BadRequestError("Featured image is required.");
   }
+
   try {
+    req.data = {
+      ...req.data,
+      featured_image: `/uploads/${req.file.filename}`,
+    };
+
     const created = await BlogPost.create(req.data);
+
     if (!created) {
       throw new BadRequestError("Failed creating blog, please try again.");
     }
+
     return res
       .status(201)
       .json(ApiResponse.created("Blog created successfully.", created));
   } catch (error) {
     if (req.file) {
-      unlinkFiles(req.file);
+      await unlinkFiles(req.file);
     }
-    next(error);
+    throw error;
   }
 });
 
@@ -682,10 +696,70 @@ export const getSingleBlog = asyncHandler(async (req, res) => {
       "BLOG_NOT_FOUND",
     );
   }
-  return res.status(201).json(ApiResponse.created("Blog found.", blogPost));
+  return res.status(201).json(ApiResponse.success("Blog found.", blogPost));
 });
 
-export const updateBlogDetails = asyncHandler(async (req, res) => {
+export const updateBlogDetails = asyncHandler(async (req, res, next) => {
+  try {
+    if (!req.params?.id) {
+      throw new NotFoundError(
+        "Blog not found.",
+        "Blog not found",
+        "BLOG_NOT_FOUND",
+      );
+    }
+
+    if (req.file) {
+      // unlink previous files from server
+      const previousBlog = await BlogPost.findById(req.params.id)
+        .select("featured_image")
+        .lean();
+      if (!previousBlog) {
+        throw new NotFoundError(
+          "Blog not found.",
+          "Blog not found",
+          "BLOG_NOT_FOUND",
+        );
+      }
+      const failedIndexes = await unlinkFilesFromServerUsingPath([
+        previousBlog?.featured_image,
+      ]);
+      if (failedIndexes.length) {
+        return next(
+          new BadRequestError(
+            `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
+            "SOME_FILES_NOT_DELETED",
+          ),
+        );
+      }
+      // adding new file
+      req.data = {
+        ...req.data,
+        featured_image: `/uploads/${req.file.filename}`,
+      };
+    }
+    const saved = await BlogPost.findByIdAndUpdate(req.params.id, req.data, {
+      returnDocument: "after",
+    });
+    if (!saved) {
+      throw new BadRequestError(
+        `Failed to update blog.`,
+        `Failed to update blog.`,
+        "FAILED_TO_UPDATE_BLOG",
+      );
+    }
+    return res
+      .status(201)
+      .json(ApiResponse.success("Blog updated successfully.", saved));
+  } catch (error) {
+    if (req.file) {
+      unlinkFiles(req.file);
+    }
+    next(error);
+  }
+});
+
+export const deleteBlog = asyncHandler(async (req, res, next) => {
   if (!req.params?.id) {
     throw new NotFoundError(
       "Blog not found.",
@@ -693,17 +767,48 @@ export const updateBlogDetails = asyncHandler(async (req, res) => {
       "BLOG_NOT_FOUND",
     );
   }
-  const saved = await FAQ.findByIdAndUpdate(req.params.id, req.data, {
-    returnDocument: "after",
-  });
-  if (!saved) {
+
+  const deleted = await BlogPost.findByIdAndDelete(req.params.id);
+  if (!deleted) {
     throw new BadRequestError(
-      `Failed to update blog.`,
-      `Failed to update blog.`,
-      "FAILED_TO_UPDATE_BLOG",
+      `Failed to delete blog.`,
+      `Failed to delete blog.`,
+      "FAILED_TO_DELETE_BLOG",
     );
   }
+  const failedIndexes = await unlinkFilesFromServerUsingPath([
+    deleted.featured_image,
+  ]);
+  if (failedIndexes.length) {
+    return next(
+      new BadRequestError(
+        `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
+        "SOME_FILES_NOT_DELETED",
+      ),
+    );
+  }
+
   return res
     .status(201)
-    .json(ApiResponse.created("Blog updated successfully.", saved));
+    .json(ApiResponse.created("Blog deleted successfully.", null));
+});
+
+export const createResource = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new BadRequestError("Featured image is required.");
+  }
+  try {
+    const created = await Resource.create(req.data);
+    if (!created) {
+      throw new BadRequestError("Failed creating resource, please try again.");
+    }
+    return res
+      .status(201)
+      .json(ApiResponse.created("Resource created successfully.", created));
+  } catch (error) {
+    if (req.file) {
+      unlinkFiles(req.file);
+    }
+    next(error);
+  }
 });

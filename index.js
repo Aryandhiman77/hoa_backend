@@ -47,6 +47,6 @@ app.use(errorHandler);
 
 connectDB().then(() => {
   app.listen(process.env.PORT, () => {
-    console.log(`Shopit running on ${APP_URL}`);
+    console.log(`HOA running on ${APP_URL}`);
   });
 });

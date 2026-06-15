@@ -1,56 +1,70 @@
 import Joi from "joi";
 
-export const blogValidationSchema = Joi.object({
-  title: Joi.string().trim().required().messages({
+export const createblogValidationSchema = Joi.object({
+  title: Joi.string().trim().required().label("Title").messages({
     "string.empty": "Title is required.",
     "any.required": "Title is required.",
   }),
 
-  slug: Joi.string().trim().lowercase().required().messages({
-    "string.empty": "Slug is required.",
-    "any.required": "Slug is required.",
-  }),
-
-  excerpt: Joi.string().trim().required().messages({
+  excerpt: Joi.string().trim().required().label("Excerpt").messages({
     "string.empty": "Excerpt is required.",
     "any.required": "Excerpt is required.",
   }),
 
-  body: Joi.string().trim().required().messages({
+  body: Joi.string().trim().required().label("Body").messages({
     "string.empty": "Body is required.",
     "any.required": "Body is required.",
   }),
 
-  category: Joi.string().trim().required().messages({
+  category: Joi.string().trim().required().label("Category").messages({
     "string.empty": "Category is required.",
     "any.required": "Category is required.",
   }),
 
   tags: Joi.array()
     .items(
-      Joi.string().trim().messages({
+      Joi.string().trim().label("Tags").messages({
         "string.base": "Each tag must be a string.",
         "string.empty": "Tags cannot be empty strings.",
       }),
     )
     .optional()
+    .label("Tags")
     .messages({
       "array.base": "Tags must be an array.",
       "array.includes": "All tags must be valid strings.",
     }),
 
-  seo_title: Joi.string().trim().optional().allow(null, ""),
+  status: Joi.string()
+    .valid("draft", "review", "published", "archived")
+    .default("draft")
+    .label("Status")
+    .messages({
+      "any.only":
+        "Status must be one of draft, review, published, unpublished, archieved.",
+    }),
 
-  meta_description: Joi.string().trim().optional().allow(null, ""),
+  seo_title: Joi.string().trim().optional().allow(null, "").label("SEO Title"),
+
+  meta_description: Joi.string()
+    .trim()
+    .optional()
+    .allow(null, "")
+    .label("Meta Description"),
 });
 
-export const updateBlogValidation = blogValidationSchema.concat(
+export const updateBlogValidationSchema = createblogValidationSchema.concat(
   Joi.object({
+    slug: Joi.string().trim().required().messages({
+      "string.empty": "Slug is required for updating the blog.",
+      "any.required": "Slug is required for updating the blog.",
+    }),
     status: Joi.string()
-      .valid("draft", "review", "published", "archieved")
+      .valid("draft", "review", "published", "archived")
       .optional()
       .messages({
-        "any.only": "Status must be either 'draft', 'published' or 'archived'.",
+        "any.only":
+          "Status must be either 'draft', 'review', 'published', or 'archived'.",
       }),
   }),
 );

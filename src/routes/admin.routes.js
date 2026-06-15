@@ -28,6 +28,7 @@ import {
   getBlogs,
   getSingleBlog,
   updateBlogDetails,
+  deleteBlog,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -46,26 +47,13 @@ import {
 } from "../validations/adminValidations/faq.js";
 import faqFilters from "../middlewares/filters/admin/faqFilters.js";
 import {
-  blogValidationSchema,
-  updateBlogValidation,
+  createblogValidationSchema,
+  updateBlogValidationSchema,
 } from "../validations/adminValidations/blogPost.js";
 import { jsonParser } from "../utils/jsonParser.js";
 import sortingFilters from "../middlewares/filters/common/sorting.js";
+import blogFilters from "../middlewares/filters/admin/blogFilters.js";
 const adminRouter = Router();
-
-//6.Pages - title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status
-adminRouter.post(
-  "/page/create",
-  upload.single("featured_image"),
-  validate(createPageValidation),
-  createPage,
-);
-// adminRouter.put(
-//   "/page/update/:id",
-//   upload.single("featured_image"),
-//   validate(updatePageValidation),
-//   updatePage,
-// );
 
 //6. Stories - ✅ (tested and working)
 //!!-> controls like flagged/approve/publish/unpublish api's must be separate, must not be in updateStoryDetails
@@ -123,20 +111,32 @@ adminRouter
     changeFaqStatus,
   );
 
-// blogs api's
+// blogs api's //✅
 adminRouter.post(
   "/blog/create",
   upload.single("featured_image"),
   jsonParser(["tags"]),
-  validate(blogValidationSchema),
+  validate(createblogValidationSchema),
   createBlog,
 );
-adminRouter.get("/blogs", pagination, sortingFilters, getBlogs);
+adminRouter.get("/blogs", pagination, blogFilters, sortingFilters, getBlogs);
 adminRouter.get("/blog/:id", getSingleBlog);
 
-adminRouter.post(
-  "/blog/update-details",
-  validate(blogValidationSchema),
+adminRouter.put(
+  "/blog/update-details/:id",
+  upload.single("featured_image"),
+  jsonParser(["tags"]),
+  validate(updateBlogValidationSchema),
   updateBlogDetails,
 );
+adminRouter.delete("/blog/:id", deleteBlog);
+
+//6.Pages - title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status
+adminRouter.post(
+  "/page/create",
+  upload.single("featured_image"),
+  validate(createPageValidation),
+  createPage,
+);
+
 export default adminRouter;

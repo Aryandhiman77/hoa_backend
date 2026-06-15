@@ -47,7 +47,7 @@ export const createPageValidation = Joi.object({
 
   publish_status: Joi.string().valid("draft", "published").optional().messages({
     "any.only": "Publish status must be either draft or published.",
-  }),
+  }),                                                                                                   
 });
 
 export const updatePageValidation = Joi.object({

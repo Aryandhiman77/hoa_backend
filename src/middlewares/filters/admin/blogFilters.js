@@ -21,4 +21,4 @@ const blogFilters = (req, res, next) => {
   next();
 };
 
-export default faqFilters;
+export default blogFilters;

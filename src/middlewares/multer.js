@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
 
     const ext = path.extname(file.originalname).toLowerCase();
 
-    const filename = `story-${hash}-${uniqueSuffix}${ext}`;
+    const filename = `hoa-${hash}-${uniqueSuffix}${ext}`;
 
     cb(null, filename);
   },
