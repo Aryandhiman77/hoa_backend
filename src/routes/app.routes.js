@@ -8,6 +8,8 @@ import {
   createAttorneySubmission,
   getHomeOwnerAttorneysByFilters,
   getStoryByFilters,
+  getBlogListing,
+  getSingleBlog,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -19,6 +21,7 @@ import pagination from "../middlewares/filters/common/pagination.js";
 import { storyFilters } from "../middlewares/filters/storyFilters.js";
 import { jsonParser } from "../utils/jsonParser.js";
 import { appConfig } from "../configs/index.js";
+import { blogSearchFilter } from "../middlewares/filters/blogSearchFilter.js";
 const appRoutes = express.Router();
 
 appRoutes.post("/contact-form", validate(contactSchema), saveContactForm); //✅
@@ -62,4 +65,12 @@ appRoutes //✅
     getHomeOwnerAttorneysByFilters,
   );
 
+appRoutes.get(
+  "/blogs",
+  pagination,
+  sortingFilters,
+  blogSearchFilter,
+  getBlogListing,
+);
+appRoutes.get("/blog/:id", getSingleBlog);
 export default appRoutes;

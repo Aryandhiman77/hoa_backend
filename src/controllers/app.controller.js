@@ -13,6 +13,7 @@ import Attorney from "../Models/submissionsQueue/attorneySubmission.js";
 import attorneySubmissionSubmitted from "../html/attorneySubmissionSubmitted.js";
 import mailsender from "../helpers/nodeMailer.js";
 import mailSender from "../helpers/nodeMailer.js";
+import BlogPost from "../Models/admin/blogPost.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -262,4 +263,49 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
   return res
     .status(201)
     .json(ApiResponse.paginated(stories, page + 1, limit, totalDocuments));
+});
+
+export const getBlogListing = AsyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { createdAt: -1 };
+
+  const [blogs, totalDocuments] = await Promise.all([
+    BlogPost.find(req.blog_search_query)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .select(
+        "-_id -seo_title -meta_description -createdAt -__v -status  -body -tags",
+      )
+      .lean(),
+
+    BlogPost.countDocuments(req.blog_search_query),
+  ]);
+
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(blogs, page + 1, limit, totalDocuments));
+});
+
+export const getSingleBlog = AsyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Blog not found.",
+      "Blog not found",
+      "BLOG_NOT_FOUND",
+    );
+  }
+  const blog = await BlogPost.findById(req.params.id).select(
+    "-_id -__v -createdAt",
+  );
+  if (!blog) {
+    throw new NotFoundError(
+      "Blog not found.",
+      "Blog not found",
+      "BLOG_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Blog found.", blog));
 });

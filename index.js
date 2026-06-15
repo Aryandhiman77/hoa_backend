@@ -43,6 +43,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/public", appRoutes);
 app.use("/admin", adminRouter);
 
+
 app.use(errorHandler);
 
 connectDB().then(() => {
