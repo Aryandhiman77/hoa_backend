@@ -28,7 +28,7 @@ const resourceSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, "Resource title is required."],
       trim: true,
     },
 
@@ -41,19 +41,19 @@ const resourceSchema = new mongoose.Schema(
 
     summary: {
       type: String,
-      required: true,
+      required: [true, "Resource summary is required."],
       trim: true,
     },
 
     body: {
       type: String,
-      required: true,
+      required: [true, "Resource body is required."],
       trim: true,
     },
 
     category: {
       type: String,
-      required: true,
+      required: [true, "Resource category is required."],
       trim: true,
     },
 
@@ -70,7 +70,7 @@ const resourceSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["draft", "review", "published", "archieved", "unpublish"],
+      enum: ["draft", "review", "published", "archived", "unpublish"],
       default: "draft",
     },
 
@@ -92,7 +92,7 @@ const resourceSchema = new mongoose.Schema(
 );
 
 // Generate unique slug from title
-resourceSchema.pre("save", async function (next) {
+resourceSchema.pre("save", async function () {
   if ((this.isModified("title") || !this.slug) && this.title) {
     const generatedSlug = slugify(this.title, { lower: true, strict: true });
 
@@ -107,7 +107,6 @@ resourceSchema.pre("save", async function (next) {
 
     this.slug = generatedSlug;
   }
-  next();
 });
 
 const Resource = mongoose.model("Resource", resourceSchema);

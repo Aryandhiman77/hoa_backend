@@ -16,6 +16,7 @@ import { cwd } from "process";
 import BlogPost from "../Models/admin/blogPost.js";
 import PrivacyPolicy from "../Models/admin/privacyPolicy.js";
 import TermsOfUse from "../Models/admin/termsOfUse.js";
+import Resource from "../Models/admin/resource.js";
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -802,26 +803,6 @@ export const deleteBlog = asyncHandler(async (req, res, next) => {
     .json(ApiResponse.created("Blog deleted successfully.", null));
 });
 
-export const createResource = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    throw new BadRequestError("Featured image is required.");
-  }
-  try {
-    const created = await Resource.create(req.data);
-    if (!created) {
-      throw new BadRequestError("Failed creating resource, please try again.");
-    }
-    return res
-      .status(201)
-      .json(ApiResponse.created("Resource created successfully.", created));
-  } catch (error) {
-    if (req.file) {
-      unlinkFiles(req.file);
-    }
-    next(error);
-  }
-});
-
 export const createPage = asyncHandler(async (req, res, next) => {
   try {
     if (req.file) {
@@ -1060,4 +1041,44 @@ export const updateTermsOfUse = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(ApiResponse.success("Terms of use updated.", updated));
+});
+
+export const createResource = asyncHandler(async (req, res, next) => {
+  if (!req.files?.featured_image || !req.files.featured_image[0]) {
+    throw new BadRequestError("Featured image is required.");
+  }
+  try {
+    const resourceData = { ...req.data };
+    resourceData.featured_image = `/uploads/${req.files.featured_image[0].filename}`;
+    if (req.files?.file?.[0]) {
+      const uploadedFile = req.files.file[0];
+      resourceData.file = {
+        fileName: uploadedFile.originalname,
+        fileUrl: `/uploads/${uploadedFile.filename}`,
+        fileType: uploadedFile.mimetype.startsWith("image/")
+          ? "image"
+          : uploadedFile.mimetype.startsWith("video/")
+            ? "video"
+            : "document",
+        fileSize: uploadedFile.size,
+      };
+    }
+
+    const saved = await Resource.create(resourceData);
+    if (!saved) {
+      throw new BadRequestError("Failed creating resource, please try again.");
+    }
+
+    return res
+      .status(201)
+      .json(ApiResponse.created("Resource created successfully.", saved));
+  } catch (error) {
+    if (req.files?.featured_image[0]) {
+      unlinkFiles(req.files?.featured_image[0]);
+    }
+    if (req.files?.file[0]) {
+      unlinkFiles(req.files?.file[0]);
+    }
+    next(error);
+  }
 });

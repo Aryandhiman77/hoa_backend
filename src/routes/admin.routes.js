@@ -40,6 +40,7 @@ import {
   getPrivacyPolicy,
   updatePrivacyPolicy,
   updateTermsOfUse,
+  createResource,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -70,6 +71,10 @@ import {
   privacyPolicyValidationSchema,
   termsOfUseValidationSchema,
 } from "../validations/adminValidations/legalPagesContentValidation.js";
+import {
+  createResourceValidationSchema,
+  updateResourceValidationSchema,
+} from "../validations/adminValidations/resourceValidations.js";
 const adminRouter = Router();
 
 //6. Stories - ✅ (tested and working)
@@ -190,4 +195,24 @@ adminRouter.put(
   updateTermsOfUse,
 );
 
+// resources api
+
+adminRouter.post(
+  "/resource/create",
+  uploadMultiple.fields([
+    { name: "featured_image", maxCount: 1 },
+    { name: "file", maxCount: 1 },
+  ]),
+  validate(createResourceValidationSchema),
+  createResource,
+);
+// adminRouter.put(
+//   "/resource/update-details/:id",
+//   uploadMultiple.fields([
+//     { name: "featured_image", maxCount: 1 },
+//     { name: "file", maxCount: 1 },
+//   ]),
+//   validate(updateResourceValidationSchema),
+//   updateResource,
+// );
 export default adminRouter;
