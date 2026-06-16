@@ -228,7 +228,7 @@ adminRouter.put(
   updateResource,
 );
 adminRouter.patch(
-  "/resouce/update-status/:id",
+  "/resource/update-status/:id",
   validate(updateResourceStatusSchema),
   updateResourceStatus,
 );
