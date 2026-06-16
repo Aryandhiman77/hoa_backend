@@ -15,6 +15,8 @@ import mailsender from "../helpers/nodeMailer.js";
 import mailSender from "../helpers/nodeMailer.js";
 import BlogPost from "../Models/admin/blogPost.js";
 import FAQ from "../Models/admin/faq.js";
+import PrivacyPolicy from "../Models/admin/privacyPolicy.js";
+import TermsOfUse from "../Models/admin/termsOfUse.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -322,4 +324,21 @@ export const getFaqs = AsyncHandler(async (req, res) => {
   ]);
 
   return res.status(201).json(ApiResponse.success("Data fetched.", faqs));
+});
+
+export const getPrivacyPolicy = AsyncHandler(async (req, res) => {
+  const privacyPolicy = await PrivacyPolicy.findOne()
+    .select("-_id -createdAt")
+    .lean();
+  return res
+    .status(200)
+    .json(ApiResponse.success("Privacy Policy found.", privacyPolicy));
+});
+export const getTermsOfUse = AsyncHandler(async (req, res) => {
+  const termsOfUse = await TermsOfUse.findOne()
+    .select("-_id -createdAt")
+    .lean();
+  return res
+    .status(200)
+    .json(ApiResponse.success("Terms of use found.", termsOfUse));
 });

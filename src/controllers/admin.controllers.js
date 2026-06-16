@@ -14,6 +14,8 @@ import { unlinkFilesFromServerUsingPath } from "../utils/unlinkFilesFromServerBy
 import fs from "fs";
 import { cwd } from "process";
 import BlogPost from "../Models/admin/blogPost.js";
+import PrivacyPolicy from "../Models/admin/privacyPolicy.js";
+import TermsOfUse from "../Models/admin/termsOfUse.js";
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -995,4 +997,67 @@ export const updatePageStatus = asyncHandler(async (req, res) => {
         saved,
       ),
     );
+});
+
+export const getPrivacyPolicy = asyncHandler(async (req, res) => {
+  const privacyPolicy = await PrivacyPolicy.findOne().lean();
+  return res
+    .status(201)
+    .json(ApiResponse.success("Privacy policy found.", privacyPolicy));
+});
+
+export const updatePrivacyPolicy = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Privacy policy not found.",
+      "Privacy policy not found",
+      "PRIVACY_POLICY_NOT_FOUND",
+    );
+  }
+  const updated = await PrivacyPolicy.findByIdAndUpdate(
+    req.params.id,
+    req.data,
+    {
+      returnDocument: "after",
+    },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Privacy policy not found.",
+      "Privacy policy not found",
+      "PRIVACY_POLICY_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Privacy policy updated.", updated));
+});
+
+export const getTermsOfUse = asyncHandler(async (req, res) => {
+  const termsOfUse = await TermsOfUse.findOne().lean();
+  return res
+    .status(201)
+    .json(ApiResponse.success("Terms of use found.", termsOfUse));
+});
+export const updateTermsOfUse = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Terms of use not found.",
+      "Terms of use not found",
+      "TERMS_OF_USE_NOT_FOUND",
+    );
+  }
+  const updated = await TermsOfUse.findByIdAndUpdate(req.params.id, req.data, {
+    returnDocument: "after",
+  });
+  if (!updated) {
+    throw new NotFoundError(
+      "Terms of use not found.",
+      "Terms of use not found",
+      "TERMS_OF_USE_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Terms of use updated.", updated));
 });

@@ -11,6 +11,8 @@ import {
   getBlogListing,
   getSingleBlog,
   getFaqs,
+  getPrivacyPolicy,
+  getTermsOfUse,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -77,5 +79,8 @@ appRoutes.get(
 appRoutes.get("/blog/:id", getSingleBlog);
 
 appRoutes.get("/faqs", faqFilters, getFaqs);
+
+appRoutes.get("/privacy-policy", getPrivacyPolicy);
+appRoutes.get("/terms-of-use", getTermsOfUse);
 
 export default appRoutes;

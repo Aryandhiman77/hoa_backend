@@ -36,6 +36,10 @@ import {
   getSinglePage,
   updatePageStatus,
   updateBlogStatus,
+  getTermsOfUse,
+  getPrivacyPolicy,
+  updatePrivacyPolicy,
+  updateTermsOfUse,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -62,6 +66,10 @@ import { jsonParser } from "../utils/jsonParser.js";
 import sortingFilters from "../middlewares/filters/common/sorting.js";
 import blogFilters from "../middlewares/filters/admin/blogFilters.js";
 import { pageFilters } from "../middlewares/filters/admin/pageFilters.js";
+import {
+  privacyPolicyValidationSchema,
+  termsOfUseValidationSchema,
+} from "../validations/adminValidations/legalPagesContentValidation.js";
 const adminRouter = Router();
 
 //6. Stories - ✅ (tested and working)
@@ -167,5 +175,19 @@ adminRouter.patch(
   updatePageStatus,
 );
 adminRouter.delete("/page/:id", deletePage);
+
+// legal pages
+adminRouter.get("/privacy-policy", getPrivacyPolicy);
+adminRouter.put(
+  "/privacy-policy/:id",
+  validate(privacyPolicyValidationSchema),
+  updatePrivacyPolicy,
+);
+adminRouter.get("/terms-of-use", getTermsOfUse);
+adminRouter.put(
+  "/terms-of-use/:id",
+  validate(termsOfUseValidationSchema),
+  updateTermsOfUse,
+);
 
 export default adminRouter;
