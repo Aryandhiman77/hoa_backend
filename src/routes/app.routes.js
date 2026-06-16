@@ -13,6 +13,7 @@ import {
   getFaqs,
   getPrivacyPolicy,
   getTermsOfUse,
+  getResources,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -26,6 +27,7 @@ import { jsonParser } from "../utils/jsonParser.js";
 import { appConfig } from "../configs/index.js";
 import { blogSearchFilter } from "../middlewares/filters/blogSearchFilter.js";
 import faqFilters from "../middlewares/filters/faqFilters.js";
+import { resourceFilters } from "../middlewares/filters/resourceFilters.js";
 const appRoutes = express.Router();
 
 appRoutes.post("/contact-form", validate(contactSchema), saveContactForm); //✅
@@ -82,5 +84,7 @@ appRoutes.get("/faqs", faqFilters, getFaqs);
 
 appRoutes.get("/privacy-policy", getPrivacyPolicy);
 appRoutes.get("/terms-of-use", getTermsOfUse);
+
+appRoutes.get("/resources", pagination, sortingFilters,resourceFilters, getResources);
 
 export default appRoutes;

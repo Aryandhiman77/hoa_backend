@@ -17,6 +17,7 @@ import BlogPost from "../Models/admin/blogPost.js";
 import FAQ from "../Models/admin/faq.js";
 import PrivacyPolicy from "../Models/admin/privacyPolicy.js";
 import TermsOfUse from "../Models/admin/termsOfUse.js";
+import Resource from "../Models/admin/resource.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -241,7 +242,7 @@ export const getHomeOwnerAttorneysByFilters = AsyncHandler(async (req, res) => {
     Attorney.countDocuments(req.hoa_query),
   ]);
   return res
-    .status(201)
+    .status(200)
     .json(ApiResponse.paginated(attorneys, page + 1, limit, totalDocuments));
 });
 
@@ -264,7 +265,7 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
   ]);
 
   return res
-    .status(201)
+    .status(200)
     .json(ApiResponse.paginated(stories, page + 1, limit, totalDocuments));
 });
 
@@ -288,7 +289,7 @@ export const getBlogListing = AsyncHandler(async (req, res) => {
   ]);
 
   return res
-    .status(201)
+    .status(200)
     .json(ApiResponse.paginated(blogs, page + 1, limit, totalDocuments));
 });
 
@@ -323,7 +324,7 @@ export const getFaqs = AsyncHandler(async (req, res) => {
     FAQ.countDocuments(req.faq_query),
   ]);
 
-  return res.status(201).json(ApiResponse.success("Data fetched.", faqs));
+  return res.status(200).json(ApiResponse.success("Data fetched.", faqs));
 });
 
 export const getPrivacyPolicy = AsyncHandler(async (req, res) => {
@@ -341,4 +342,33 @@ export const getTermsOfUse = AsyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(ApiResponse.success("Terms of use found.", termsOfUse));
+});
+export const getResources = AsyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { createdAt: -1 };
+
+  const [resources, totalDocuments] = await Promise.all([
+    Resource.find(req.resource_filters)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .select({
+        "file.fileName": 0,
+        _id: 0,
+        seo_title: 0,
+        meta_description: 0,
+        createdAt: 0,
+        __v: 0,
+        status: 0,
+      })
+      .lean(),
+
+    Resource.countDocuments(req.resource_filters),
+  ]);
+
+  return res
+    .status(200)
+    .json(ApiResponse.paginated(resources, page + 1, limit, totalDocuments));
 });
