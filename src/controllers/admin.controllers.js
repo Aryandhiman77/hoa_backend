@@ -566,7 +566,7 @@ export const updateFaqDetails = asyncHandler(async (req, res) => {
     );
   }
   return res
-    .status(201)
+    .status(200)
     .json(ApiResponse.success("FAQ updated successfully.", saved));
 });
 
@@ -615,7 +615,7 @@ export const changeFaqStatus = asyncHandler(async (req, res) => {
     );
   }
   return res
-    .status(201)
+    .status(200)
     .json(ApiResponse.success("FAQ updated successfully.", saved));
 });
 
@@ -731,7 +731,7 @@ export const updateBlogDetails = asyncHandler(async (req, res, next) => {
       );
     }
     return res
-      .status(201)
+      .status(200)
       .json(ApiResponse.success("Blog updated successfully.", saved));
   } catch (error) {
     if (req.file) {
@@ -1081,4 +1081,123 @@ export const createResource = asyncHandler(async (req, res, next) => {
     }
     next(error);
   }
+});
+
+export const getResources = asyncHandler(async (req, res, next) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { title: 1 };
+
+  const [resources, totalDocuments] = await Promise.all([
+    Resource.find(req.resource_filters)
+      .select("title slug category featured_image status")
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .lean(),
+    Resource.countDocuments(req.resource_filters).lean(),
+  ]);
+  return res
+    .status(200)
+    .json(ApiResponse.paginated(resources, page + 1, limit, totalDocuments));
+});
+
+export const updateResource = asyncHandler(async (req, res, next) => {
+  if (!req.params.id) {
+    throw new NotFoundError(
+      "Resource ID is required.",
+      "resource not found",
+      "RESOURCE_NOT_FOUND",
+    );
+  }
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) {
+      throw new NotFoundError(
+        "Resource not found.",
+        "resource not found",
+        "RESOURCE_NOT_FOUND",
+      );
+    }
+    const resourceData = { ...req.data };
+
+    if (req.files?.featured_image?.[0]) {
+      if (resource.featured_image) {
+        await unlinkFilesFromServerUsingPath([resource.featured_image]);
+      }
+      resourceData.featured_image = `/uploads/${req.files.featured_image[0].filename}`;
+    }
+    if (req.files?.file?.[0]) {
+      if (resource.file?.fileUrl) {
+        await unlinkFilesFromServerUsingPath([resource.file.fileUrl]);
+      }
+      const uploadedFile = req.files.file[0];
+      resourceData.file = {
+        fileName: uploadedFile.originalname,
+        fileUrl: `/uploads/${uploadedFile.filename}`,
+        fileType: uploadedFile.mimetype.startsWith("image/")
+          ? "image"
+          : uploadedFile.mimetype.startsWith("video/")
+            ? "video"
+            : "document",
+        fileSize: uploadedFile.size,
+      };
+    }
+
+    const updatedResource = await Resource.findByIdAndUpdate(
+      req.params.id,
+      resourceData,
+      {
+        returnDocument: "after",
+      },
+    );
+    if (!updatedResource) {
+      throw new BadRequestError("Failed updating resource, please try again.");
+    }
+
+    return res
+      .status(200)
+      .json(
+        ApiResponse.success("Resource updated successfully.", updatedResource),
+      );
+  } catch (error) {
+    if (req.files?.featured_image[0]) {
+      unlinkFiles(req.files?.featured_image[0]);
+    }
+    if (req.files?.file[0]) {
+      unlinkFiles(req.files?.file[0]);
+    }
+    next(error);
+  }
+});
+
+export const updateResourceStatus = asyncHandler(async (req, res, next) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Resource not found.",
+      "Resource not found",
+      "RESOURCE_NOT_FOUND",
+    );
+  }
+  const saved = await Resource.findByIdAndUpdate(
+    req.params?.id,
+    { status: req.data?.status },
+    {
+      returnDocument: "after",
+    },
+  );
+  if (!saved) {
+    throw new BadRequestError(
+      "Failed changing resource status, please try again.",
+    );
+  }
+  return res
+    .status(201)
+    .json(
+      ApiResponse.success(
+        `Resource status changed to ${req.data?.status}.`,
+        saved,
+      ),
+    );
 });
