@@ -92,7 +92,7 @@ export const updatePageValidation = Joi.object({
     }),
 
   publish_status: Joi.string()
-    .valid("draft", "review", "published", "archieved", "unpublish")
+    .valid("draft", "review", "published", "archived", "unpublish")
     .required()
     .label("Publish Status")
     .messages({
@@ -101,3 +101,18 @@ export const updatePageValidation = Joi.object({
       "any.required": "Publish status is required.",
     }),
 });
+export const pageStatusValidation = Joi.object({
+  publish_status: Joi.string()
+    .valid("draft", "review", "published", "archived", "unpublish")
+    .required()
+    .label("Status")
+    .messages({
+      "any.only":
+        "Publish Status must be either draft, published, unpublish, review or archived.",
+      "any.required": "Publish status is required.",
+    }),
+})
+  .required()
+  .messages({
+    "any.required": "Publish Status is required",
+  });

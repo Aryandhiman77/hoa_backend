@@ -738,6 +738,34 @@ export const updateBlogDetails = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const updateBlogStatus = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Blog not found.",
+      "Blog not found",
+      "BLOG_NOT_FOUND",
+    );
+  }
+  const saved = await BlogPost.findByIdAndUpdate(
+    req.params?.id,
+    { status: req.data?.status },
+    {
+      returnDocument: "after",
+    },
+  );
+  if (!saved) {
+    throw new BadRequestError("Failed changing blog status, please try again.");
+  }
+  return res
+    .status(201)
+    .json(
+      ApiResponse.success(
+        `Blog status changed to ${req.data?.publish_status}.`,
+        saved,
+      ),
+    );
+});
+
 export const deleteBlog = asyncHandler(async (req, res, next) => {
   if (!req.params?.id) {
     throw new NotFoundError(
@@ -871,4 +899,100 @@ export const updatePage = asyncHandler(async (req, res, next) => {
     }
     next(error);
   }
+});
+
+export const deletePage = asyncHandler(async (req, res, next) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Page not found.",
+      "Page not found",
+      "PAGE_NOT_FOUND",
+    );
+  }
+  const deleted = await Page.findByIdAndDelete(req.params.id);
+  console.log(deleted);
+  if (!deleted) {
+    throw new BadRequestError(
+      `Failed to delete page.`,
+      `Failed to delete page.`,
+      "FAILED_TO_DELETE_PAGE",
+    );
+  }
+  const failedIndexes = await unlinkFilesFromServerUsingPath([
+    deleted.featured_image,
+  ]);
+  if (failedIndexes.length) {
+    return next(
+      new BadRequestError(
+        `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
+        "SOME_FILES_NOT_DELETED",
+      ),
+    );
+  }
+
+  return res
+    .status(201)
+    .json(ApiResponse.success("Page deleted successfully.", null));
+});
+
+export const getPages = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { title: 1 };
+
+  const [pages, totalDocuments] = await Promise.all([
+    Page.find(req.page_filters).sort(sorting).limit(limit).skip(skip).lean(),
+    Page.countDocuments(req.page_filters).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(pages, page + 1, limit, totalDocuments));
+});
+
+export const getSinglePage = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Page not found.",
+      "Page not found",
+      "Page_NOT_FOUND",
+    );
+  }
+  const page = await Page.findById(req.params.id);
+  if (!page) {
+    throw new NotFoundError(
+      "Page not found.",
+      "Page not found",
+      "PAGE_NOT_FOUND",
+    );
+  }
+  return res.status(201).json(ApiResponse.success("Page found.", page));
+});
+
+export const updatePageStatus = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Page not found.",
+      "Page not found",
+      "Page_NOT_FOUND",
+    );
+  }
+  const saved = await Page.findByIdAndUpdate(
+    req.params?.id,
+    { publish_status: req.data?.publish_status },
+    {
+      returnDocument: "after",
+    },
+  );
+  if (!saved) {
+    throw new BadRequestError("Failed changing page status, please try again.");
+  }
+  return res
+    .status(201)
+    .json(
+      ApiResponse.success(
+        `Page status changed to ${req.data?.publish_status}.`,
+        saved,
+      ),
+    );
 });

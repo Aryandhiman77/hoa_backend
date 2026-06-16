@@ -26,7 +26,7 @@ const blogSchema = new mongoose.Schema(
     featured_image: { type: String, trim: true, default: null },
     status: {
       type: String,
-      enum: ["draft", "published", "unpublished", "archived"],
+      enum: ["draft", "review", "published", "archieved", "unpublish"],
       default: "draft",
     },
     seo_title: { type: String, trim: true, default: null },
@@ -34,7 +34,6 @@ const blogSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
 
 blogSchema.pre("save", async function () {
   if (!this.slug && this.title) {

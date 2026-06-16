@@ -60,7 +60,7 @@ export const updateBlogValidationSchema = createblogValidationSchema.concat(
       "any.required": "Slug is required for updating the blog.",
     }),
     status: Joi.string()
-      .valid("draft", "review", "published", "archived")
+      .valid("draft", "review", "published", "archived", "unpublish")
       .optional()
       .messages({
         "any.only":
@@ -68,3 +68,19 @@ export const updateBlogValidationSchema = createblogValidationSchema.concat(
       }),
   }),
 );
+
+export const blogStatusValidation = Joi.object({
+  status: Joi.string()
+    .valid("draft", "review", "published", "archived", "unpublish")
+    .required()
+    .label("Status")
+    .messages({
+      "any.only":
+        "Status must be either draft, published, unpublish, review or archived.",
+      "any.required": "Status is required.",
+    }),
+})
+  .required()
+  .messages({
+    "any.required": "Status is required",
+  });

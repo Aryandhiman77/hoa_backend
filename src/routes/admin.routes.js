@@ -2,6 +2,7 @@ import { Router } from "express";
 import validate from "../middlewares/validate.js";
 import {
   createPageValidation,
+  pageStatusValidation,
   updatePageValidation,
 } from "../validations/adminValidations/page.js";
 import {
@@ -30,6 +31,11 @@ import {
   updateBlogDetails,
   deleteBlog,
   updatePage,
+  deletePage,
+  getPages,
+  getSinglePage,
+  updatePageStatus,
+  updateBlogStatus,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -48,12 +54,14 @@ import {
 } from "../validations/adminValidations/faq.js";
 import faqFilters from "../middlewares/filters/admin/faqFilters.js";
 import {
+  blogStatusValidation,
   createblogValidationSchema,
   updateBlogValidationSchema,
 } from "../validations/adminValidations/blogPost.js";
 import { jsonParser } from "../utils/jsonParser.js";
 import sortingFilters from "../middlewares/filters/common/sorting.js";
 import blogFilters from "../middlewares/filters/admin/blogFilters.js";
+import { pageFilters } from "../middlewares/filters/admin/pageFilters.js";
 const adminRouter = Router();
 
 //6. Stories - ✅ (tested and working)
@@ -131,9 +139,13 @@ adminRouter.put(
   updateBlogDetails,
 );
 adminRouter.delete("/blog/:id", deleteBlog);
+adminRouter.patch(
+  "/blog/update-status/:id",
+  validate(blogStatusValidation),
+  updateBlogStatus,
+);
 
-//6.Pages - title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status
-
+//6.Pages - title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status ✅
 adminRouter.post(
   "/page/create",
   upload.single("featured_image"),
@@ -146,5 +158,14 @@ adminRouter.put(
   validate(updatePageValidation),
   updatePage,
 );
+
+adminRouter.get("/pages", pagination, sortingFilters, pageFilters, getPages);
+adminRouter.get("/page/:id", getSinglePage);
+adminRouter.patch(
+  "/page/update-status/:id",
+  validate(pageStatusValidation),
+  updatePageStatus,
+);
+adminRouter.delete("/page/:id", deletePage);
 
 export default adminRouter;
