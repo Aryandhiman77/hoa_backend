@@ -29,6 +29,7 @@ import {
   getSingleBlog,
   updateBlogDetails,
   deleteBlog,
+  updatePage,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -132,11 +133,18 @@ adminRouter.put(
 adminRouter.delete("/blog/:id", deleteBlog);
 
 //6.Pages - title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status
+
 adminRouter.post(
   "/page/create",
   upload.single("featured_image"),
   validate(createPageValidation),
   createPage,
+);
+adminRouter.put(
+  "/page/update-details/:id",
+  upload.single("featured_image"),
+  validate(updatePageValidation),
+  updatePage,
 );
 
 export default adminRouter;

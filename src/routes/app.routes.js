@@ -76,9 +76,6 @@ appRoutes.get(
 );
 appRoutes.get("/blog/:id", getSingleBlog);
 
-appRoutes.get(
-  "/faqs",
-  faqFilters,
-  getFaqs,
-);
+appRoutes.get("/faqs", faqFilters, getFaqs);
+
 export default appRoutes;

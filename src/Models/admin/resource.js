@@ -21,7 +21,7 @@ const resourceFileSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const resourceSchema = new mongoose.Schema(
@@ -70,7 +70,7 @@ const resourceSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["draft", "published"],
+      enum: ["draft", "review", "published", "archieved", "unpublish"],
       default: "draft",
     },
 
@@ -88,7 +88,7 @@ const resourceSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Generate unique slug from title

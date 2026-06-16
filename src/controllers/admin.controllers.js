@@ -792,11 +792,15 @@ export const createResource = asyncHandler(async (req, res) => {
   }
 });
 
-export const createPage = asyncHandler(async (req, res) => {
+export const createPage = asyncHandler(async (req, res, next) => {
   try {
-    if (!req.file) {
-      throw new BadRequestError("Featured image is required.");
+    if (req.file) {
+      req.data = {
+        ...req.data,
+        featured_image: `/uploads/${req.file.filename}`,
+      };
     }
+
     const saved = await Page.create(req.data);
     if (!saved) {
       throw new BadRequestError("Failed saving page, please try again.");
@@ -804,6 +808,63 @@ export const createPage = asyncHandler(async (req, res) => {
     return res
       .status(201)
       .json(ApiResponse.created("Page saved successfully.", saved));
+  } catch (error) {
+    if (req.file) {
+      unlinkFiles(req.file);
+    }
+    next(error);
+  }
+});
+export const updatePage = asyncHandler(async (req, res, next) => {
+  try {
+    if (!req.params?.id) {
+      throw new NotFoundError(
+        "Page not found.",
+        "Page not found",
+        "PAGE_NOT_FOUND",
+      );
+    }
+    const previousBlog = await Page.findById(req.params.id)
+      .select("featured_image")
+      .lean();
+    if (!previousBlog) {
+      throw new NotFoundError(
+        "Page not found.",
+        "Page not found",
+        "PAGE_NOT_FOUND",
+      );
+    }
+    if (req.file && previousBlog.featured_image) {
+      // if new file delete that file and save new file
+
+      const failedIndexes = await unlinkFilesFromServerUsingPath([
+        previousBlog?.featured_image,
+      ]);
+
+      if (failedIndexes.length) {
+        return next(
+          new BadRequestError(
+            `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
+            "SOME_FILES_NOT_DELETED",
+          ),
+        );
+      }
+      // adding new file
+      req.data = {
+        ...req.data,
+        featured_image: `/uploads/${req.file.filename}`,
+      };
+    }
+
+    const saved = await Page.findByIdAndUpdate(req.params?.id, req.data, {
+      returnDocument: "after",
+    });
+    if (!saved) {
+      throw new BadRequestError("Failed saving page, please try again.");
+    }
+    return res
+      .status(201)
+      .json(ApiResponse.created("Page updated successfully.", saved));
   } catch (error) {
     if (req.file) {
       unlinkFiles(req.file);

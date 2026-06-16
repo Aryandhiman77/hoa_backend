@@ -1,107 +1,48 @@
-// title, slug, hero_title, hero_body, sections/modules, SEO title, meta description, featured image, publish status
-
 import mongoose from "mongoose";
-
-const pageSectionSchema = new mongoose.Schema(
-  {
-    type: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    title: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-
-    body: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-
-    image: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-
-    buttonText: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-
-    buttonUrl: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-
-    items: {
-      type: Array,
-      default: [],
-    },
-  },
-  { _id: false },
-);
+import slugify from "slugify";
 
 const pageSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, "Page title is required."],
       trim: true,
     },
-
     slug: {
       type: String,
-      required: true,
-      unique: true,
       trim: true,
       lowercase: true,
+      unique: true,
+      index: true,
     },
-
     hero_title: {
       type: String,
-      required: true,
+      required: [true, "Hero title is required."],
       trim: true,
     },
-
     hero_body: {
       type: String,
-      required: true,
+      required: [true, "Hero body is required."],
       trim: true,
     },
-
-    sections: {
-      type: [pageSectionSchema],
-      default: [],
-    },
-
     seo_title: {
       type: String,
-      required: true,
+      required: [true, "SEO title is required."],
       trim: true,
     },
-
     meta_description: {
       type: String,
-      required: true,
+      required: [true, "Meta description is required."],
       trim: true,
     },
-
     featured_image: {
       type: String,
       trim: true,
       default: null,
     },
-
     publish_status: {
       type: String,
-      enum: ["draft", "published"],
+      enum: ["draft", "review", "published", "archieved", "unpublish"],
       default: "draft",
     },
   },
@@ -110,13 +51,34 @@ const pageSchema = new mongoose.Schema(
   },
 );
 
-const Page = mongoose.model("Page", pageSchema);
+// Pre-save hook: generate slug if not provided, otherwise keep provided slug
+pageSchema.pre("save", async function () {
+  try {
+    if (!this.slug && this.title) {
+      const generatedSlug = slugify(this.title, {
+        lower: true,
+        strict: true,
+        trim: true,
+      });
 
-pageSchema.pre("save", function (next) {
-  if (this.isModified("title")) {
-    this.slug = slugify(this.name, { lower: true });
+      // Check uniqueness
+      const existingPage = await mongoose.models.Page.findOne({
+        slug: generatedSlug,
+        _id: { $ne: this._id },
+      });
+
+      if (existingPage) {
+        throw new Error("Page title is already taken, use a different 'title'");
+      }
+
+      this.slug = generatedSlug;
+    }
+    // If slug is provided explicitly, we use it as is
+  } catch (err) {
+    throw new Error(err.message);
   }
-  next();
 });
+
+const Page = mongoose.model("Page", pageSchema);
 
 export default Page;
