@@ -85,6 +85,12 @@ appRoutes.get("/faqs", faqFilters, getFaqs);
 appRoutes.get("/privacy-policy", getPrivacyPolicy);
 appRoutes.get("/terms-of-use", getTermsOfUse);
 
-appRoutes.get("/resources", pagination, sortingFilters,resourceFilters, getResources);
+appRoutes.get(
+  "/resources",
+  pagination,
+  sortingFilters,
+  resourceFilters,
+  getResources,
+);
 
 export default appRoutes;

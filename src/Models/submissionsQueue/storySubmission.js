@@ -172,10 +172,10 @@ const storySchema = new mongoose.Schema(
   },
 );
 
-storySchema.pre("save", function (next) {
+storySchema.pre("save", async function () {
   if (
-    (this.isModified("story_hoa_name") || !this.story_slug) &&
-    this.story_hoa_name
+    this.story_hoa_name &&
+    (this.isModified("story_hoa_name") || !this.story_slug)
   ) {
     this.story_slug = slugify(this.story_hoa_name, {
       lower: true,
@@ -183,8 +183,6 @@ storySchema.pre("save", function (next) {
       trim: true,
     });
   }
-
-  next();
 });
 const Story = mongoose.model("Story", storySchema);
 
