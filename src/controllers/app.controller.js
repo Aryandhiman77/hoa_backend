@@ -18,6 +18,8 @@ import FAQ from "../Models/admin/faq.js";
 import PrivacyPolicy from "../Models/admin/privacyPolicy.js";
 import TermsOfUse from "../Models/admin/termsOfUse.js";
 import Resource from "../Models/admin/resource.js";
+import WebsiteSettings from "../Models/admin/siteSettings.js";
+import CMSPage from "../Models/admin/cms/CmsPage.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -371,4 +373,30 @@ export const getResources = AsyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(ApiResponse.paginated(resources, page + 1, limit, totalDocuments));
+});
+
+export const getClientWebsiteSettings = AsyncHandler(async (req, res) => {
+  const settings = await WebsiteSettings.findOne().select("-_id").lean();
+  if (!settings) {
+    throw new NotFoundError(
+      "Settings not found.",
+      "Settings not found",
+      "SETTINGS_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Data found.", settings));
+});
+
+export const getPageContent = AsyncHandler(async (req, res) => {
+  if (!req.params?.pageKey) {
+    throw new NotFoundError(
+      "Page Content not found.",
+      "Page Content not found",
+      "PAGE_CONTENT_NOT_FOUND",
+    );
+  }
+  const content = await CMSPage.findOne({ pageKey: req.params.pageKey })
+    .select("-_id")
+    .lean();
+  return res.status(200).json(ApiResponse.success("Content found.", content));
 });

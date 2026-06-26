@@ -17,6 +17,9 @@ import BlogPost from "../Models/admin/blogPost.js";
 import PrivacyPolicy from "../Models/admin/privacyPolicy.js";
 import TermsOfUse from "../Models/admin/termsOfUse.js";
 import Resource from "../Models/admin/resource.js";
+import WebsiteSettings from "../Models/admin/siteSettings.js";
+import CMSPage from "../Models/admin/cms/CmsPage.js";
+import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -1107,7 +1110,7 @@ export const updateResource = asyncHandler(async (req, res, next) => {
   if (!req.params.id) {
     throw new NotFoundError(
       "Resource ID is required.",
-      "resource not found",
+      "Resource not found",
       "RESOURCE_NOT_FOUND",
     );
   }
@@ -1116,7 +1119,7 @@ export const updateResource = asyncHandler(async (req, res, next) => {
     if (!resource) {
       throw new NotFoundError(
         "Resource not found.",
-        "resource not found",
+        "Resource not found",
         "RESOURCE_NOT_FOUND",
       );
     }
@@ -1200,4 +1203,257 @@ export const updateResourceStatus = asyncHandler(async (req, res, next) => {
         saved,
       ),
     );
+});
+
+export const settingsUpdationController = asyncHandler(
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new NotFoundError(
+          "Settings not found.",
+          "Settings not found",
+          "SETTINGS_NOT_FOUND",
+        );
+      }
+
+      const settings = await WebsiteSettings.findById(id);
+      if (!settings) {
+        throw new NotFoundError(
+          "Settings not found.",
+          "Settings not found",
+          "SETTINGS_NOT_FOUND",
+        );
+      }
+
+      // handle logo upload
+      if (req.file) {
+        try {
+          // unlink previous logo file
+          if (settings.logo?.url) {
+            await unlinkFilesFromServerUsingPath([settings.logo.url]);
+          }
+        } catch (err) {
+          console.error("Failed to delete previous logo:", err.message);
+        }
+
+        req.data = {
+          ...req.data,
+          logo: {
+            url: `/uploads/${req.file.filename}`,
+            altText: req.data?.logo?.altText || "HomeOwnersAssociation",
+          },
+        };
+      } else if (req.data?.logo?.altText) {
+        // update only altText if no new file
+        req.data = {
+          ...req.data,
+          logo: {
+            url: settings.logo?.url || "/uploads/default-logo.png",
+            altText: req.data.logo.altText || "HomeOwnersAssociation",
+          },
+        };
+      }
+
+      const updated = await WebsiteSettings.findByIdAndUpdate(
+        id,
+        req.data,
+        { new: true }, // return the updated document
+      );
+
+      if (!updated) {
+        throw new BadRequestError(
+          "Failed changing website settings, please try again.",
+        );
+      }
+
+      return res
+        .status(200)
+        .json(ApiResponse.success("Website settings updated.", updated));
+    } catch (error) {
+      // if file was uploaded, remove it on error
+      if (req.file) {
+        try {
+          await unlinkFilesFromServerUsingPath([
+            `/uploads/${req.file.filename}`,
+          ]);
+        } catch (err) {
+          console.error(
+            "Failed to cleanup uploaded file on error:",
+            err.message,
+          );
+        }
+      }
+      next(error);
+    }
+  },
+);
+
+export const getWebsiteSettings = asyncHandler(async (req, res) => {
+  const settings = await WebsiteSettings.findOne().lean();
+  if (!settings) {
+    throw new NotFoundError(
+      "Settings not found.",
+      "Settings not found",
+      "SETTINGS_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Website settings found.", settings));
+});
+
+export const cmsManager = asyncHandler(async (req, res, next) => {
+  try {
+    const cmsId = req.params?.id;
+    if (!cmsId) {
+      throw new NotFoundError(
+        "CMS not found.",
+        "CMS not found",
+        "CMS_NOT_FOUND",
+      );
+    }
+
+    const CMS = await CMSPage.findById(cmsId);
+    if (!CMS) {
+      throw new NotFoundError(
+        "CMS not found.",
+        "CMS not found",
+        "CMS_NOT_FOUND",
+      );
+    }
+
+    const updatedData = { ...req.data };
+
+    // Handle uploaded images
+    if (req.files) {
+      const filesToRemove = [];
+
+      // featured_image1 → featured_image_left
+      if (req.files.featured_image1?.[0]) {
+        if (CMS.featured_image_left) {
+          filesToRemove.push(CMS.featured_image_left);
+        }
+        updatedData.featured_image_left = `/uploads/${req.files.featured_image1[0].filename}`;
+      }
+
+      // featured_image2 → featured_image_right
+      if (req.files.featured_image2?.[0]) {
+        if (CMS.featured_image_right) {
+          filesToRemove.push(CMS.featured_image_right);
+        }
+        updatedData.featured_image_right = `/uploads/${req.files.featured_image2[0].filename}`;
+      }
+
+      // Unlink previous files
+      if (filesToRemove.length) {
+        await unlinkFilesFromServerUsingPath(filesToRemove);
+      }
+    }
+
+    // Update CMS page
+    const saved = await CMSPage.findByIdAndUpdate(cmsId, updatedData, {
+      returnDocument: "after",
+    });
+
+    return res
+      .status(200)
+      .json(ApiResponse.success("CMS page updated successfully.", saved));
+  } catch (error) {
+    // Clean up uploaded files if error occurs
+    if (req.files) {
+      if (req.files.featured_image1?.[0]) {
+        unlinkFilesFromServerUsingPath([
+          `/uploads/${req.files.featured_image1[0].filename}`,
+        ]);
+      }
+      if (req.files.featured_image2?.[0]) {
+        unlinkFilesFromServerUsingPath([
+          `/uploads/${req.files.featured_image2[0].filename}`,
+        ]);
+      }
+    }
+    next(error);
+  }
+});
+
+export const getCmsData = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Page Content not found.",
+      "Page Content not found",
+      "PAGE_CONTENT_NOT_FOUND",
+    );
+  }
+  const cmsdata = await CMSPage.findById(req.params.id).lean();
+  return res.status(200).json(ApiResponse.success("CMS data found.", cmsdata));
+});
+
+export const manageHomePageCMS = asyncHandler(async (req, res, next) => {
+  try {
+    if (!req.params?.id) {
+      throw new NotFoundError(
+        "Home CMS not found.",
+        "Home CMS not found",
+        "CMS_CONTENT_NOT_FOUND",
+      );
+    }
+
+    const updatedData = { ...req.data };
+    // check for new Image, remove previous image and add new image
+    if (req.files) {
+      const filesToRemove = [];
+
+      if (req.files.featured_image1?.[0]) {
+        if (CMS.featured_image1) {
+          filesToRemove.push(CMS.featured_image1);
+        }
+        updatedData.hero.featured_image1 = `/uploads/${req.files.featured_image1[0].filename}`;
+      }
+
+      if (req.files.featured_image2?.[0]) {
+        if (CMS.featured_image2) {
+          filesToRemove.push(CMS.featured_image2);
+        }
+        updatedData.hero.featured_image2 = `/uploads/${req.files.featured_image2[0].filename}`;
+      }
+
+      // Unlink previous files
+      if (filesToRemove.length) {
+        await unlinkFilesFromServerUsingPath(filesToRemove);
+      }
+    }
+    if (updatedData?.featured_image1_alt) {
+      updatedData.hero.featured_image1.altText =
+        updatedData?.featured_image1_alt;
+    }
+    if (updatedData?.featured_image2_alt) {
+      updatedData.hero.featured_image2.altText =
+        updatedData?.featured_image2_alt;
+    }
+    const saved = await HomePageCMS.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      {
+        returnDocument: "after",
+      },
+    );
+    return res
+      .status(200)
+      .json(ApiResponse.success("Home CMS data found.", homeCMSData));
+  } catch (error) {
+    if (req.files) {
+      if (req.files.featured_image1?.[0]) {
+        unlinkFilesFromServerUsingPath([
+          `/uploads/${req.files.featured_image1[0].filename}`,
+        ]);
+      }
+      if (req.files.featured_image2?.[0]) {
+        unlinkFilesFromServerUsingPath([
+          `/uploads/${req.files.featured_image2[0].filename}`,
+        ]);
+      }
+    }
+    next(error);
+  }
 });
