@@ -1391,7 +1391,8 @@ export const getCmsData = asyncHandler(async (req, res) => {
 
 export const manageHomePageCMS = asyncHandler(async (req, res, next) => {
   try {
-    if (!req.params?.id) {
+    const cmsId = req.params?.id;
+    if (!cmsId) {
       throw new NotFoundError(
         "Home CMS not found.",
         "Home CMS not found",
@@ -1399,61 +1400,114 @@ export const manageHomePageCMS = asyncHandler(async (req, res, next) => {
       );
     }
 
-    const updatedData = { ...req.data };
-    // check for new Image, remove previous image and add new image
-    if (req.files) {
-      const filesToRemove = [];
-
-      if (req.files.featured_image1?.[0]) {
-        if (CMS.featured_image1) {
-          filesToRemove.push(CMS.featured_image1);
-        }
-        updatedData.hero.featured_image1 = `/uploads/${req.files.featured_image1[0].filename}`;
-      }
-
-      if (req.files.featured_image2?.[0]) {
-        if (CMS.featured_image2) {
-          filesToRemove.push(CMS.featured_image2);
-        }
-        updatedData.hero.featured_image2 = `/uploads/${req.files.featured_image2[0].filename}`;
-      }
-
-      // Unlink previous files
-      if (filesToRemove.length) {
-        await unlinkFilesFromServerUsingPath(filesToRemove);
-      }
+    // Fetch existing CMS document
+    const CMS = await HomePageCMS.findById(cmsId);
+    if (!CMS) {
+      throw new NotFoundError(
+        "Home CMS not found.",
+        "Home CMS not found",
+        "CMS_CONTENT_NOT_FOUND",
+      );
     }
-    if (updatedData?.featured_image1_alt) {
-      updatedData.hero.featured_image1.altText =
-        updatedData?.featured_image1_alt;
+
+    // Start with existing CMS data
+    const updatedData = CMS.toObject();
+
+    // === HERO SECTION UPDATE ===
+    updatedData.hero = updatedData.hero || {};
+    if (req.body.hero) {
+      updatedData.hero.subtitle =
+        req.body.hero.subtitle ?? updatedData.hero.subtitle;
+      updatedData.hero.introText =
+        req.body.hero.introText ?? updatedData.hero.introText;
+      updatedData.hero.disclaimerCheckboxText =
+        req.body.hero.disclaimerCheckboxText ??
+        updatedData.hero.disclaimerCheckboxText;
+      updatedData.hero.buttons =
+        req.body.hero.buttons ?? updatedData.hero.buttons;
     }
-    if (updatedData?.featured_image2_alt) {
-      updatedData.hero.featured_image2.altText =
-        updatedData?.featured_image2_alt;
+
+    // Handle featured_image1 (hero)
+    if (!updatedData.hero.featured_image1)
+      updatedData.hero.featured_image1 = {};
+    if (req.files?.featured_image1?.[0]) {
+      // Remove old image if exists
+      if (CMS.hero.featured_image1?.url) {
+        await unlinkFilesFromServerUsingPath([CMS.hero.featured_image1.url]);
+      }
+      updatedData.hero.featured_image1.url = `/uploads/${req.files.featured_image1[0].filename}`;
     }
-    const saved = await HomePageCMS.findByIdAndUpdate(
-      req.params.id,
-      updatedData,
-      {
-        returnDocument: "after",
-      },
-    );
+    if (req.body.featured_image1_alt) {
+      updatedData.hero.featured_image1.altText = req.body.featured_image1_alt;
+    }
+
+    // === HIGHLIGHT SECTION UPDATE ===
+    updatedData.highlight = updatedData.highlight || {};
+    if (req.body.highlight) {
+      updatedData.highlight.heading =
+        req.body.highlight.heading ?? updatedData.highlight.heading;
+      updatedData.highlight.subHeading =
+        req.body.highlight.subHeading ?? updatedData.highlight.subHeading;
+    }
+
+    // === PROPERTY COMPARISON SECTION UPDATE ===
+    updatedData.propertyComparison = updatedData.propertyComparison || {};
+    if (req.body.propertyComparison) {
+      updatedData.propertyComparison.mainText =
+        req.body.propertyComparison.mainText ??
+        updatedData.propertyComparison.mainText;
+      updatedData.propertyComparison.highlightText =
+        req.body.propertyComparison.highlightText ??
+        updatedData.propertyComparison.highlightText;
+      updatedData.propertyComparison.disclaimer =
+        req.body.propertyComparison.disclaimer ??
+        updatedData.propertyComparison.disclaimer;
+    }
+
+    // Handle featured_image2 (propertyComparison)
+    if (!updatedData.propertyComparison.featured_image2)
+      updatedData.propertyComparison.featured_image2 = {};
+    if (req.files?.featured_image2?.[0]) {
+      if (CMS.propertyComparison.featured_image2?.url) {
+        await unlinkFilesFromServerUsingPath([
+          CMS.propertyComparison.featured_image2.url,
+        ]);
+      }
+      updatedData.propertyComparison.featured_image2.url = `/uploads/${req.files.featured_image2[0].filename}`;
+    }
+    if (req.body.featured_image2_alt) {
+      updatedData.propertyComparison.featured_image2.altText =
+        req.body.featured_image2_alt;
+    }
+
+    // Save updated document
+    const saved = await HomePageCMS.findByIdAndUpdate(cmsId, updatedData, {
+      returnDocument: "after",
+    });
+
     return res
       .status(200)
-      .json(ApiResponse.success("Home CMS data found.", homeCMSData));
+      .json(ApiResponse.success("Home CMS updated successfully.", saved));
   } catch (error) {
-    if (req.files) {
-      if (req.files.featured_image1?.[0]) {
-        unlinkFilesFromServerUsingPath([
-          `/uploads/${req.files.featured_image1[0].filename}`,
-        ]);
-      }
-      if (req.files.featured_image2?.[0]) {
-        unlinkFilesFromServerUsingPath([
-          `/uploads/${req.files.featured_image2[0].filename}`,
-        ]);
-      }
+    // Cleanup uploaded files on error
+    if (req.files?.featured_image1?.[0]) {
+      unlinkFiles(req.files?.featured_image1?.[0]);
+    }
+    if (req.files?.featured_image2?.[0]) {
+      unlinkFiles(req.files?.featured_image2?.[0]);
     }
     next(error);
   }
+});
+
+export const getHomeCMS = asyncHandler(async (req, res, next) => {
+  const cms = await HomePageCMS.findOne().lean();
+  if (!cms) {
+    throw new NotFoundError(
+      "Home CMS not found.",
+      "Home CMS not found",
+      "CMS_CONTENT_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Home CMS found.", cms));
 });

@@ -1,5 +1,9 @@
 import ApiResponse from "../helpers/apiResponse.js";
-import { ApiError, BadRequestError } from "../helpers/apiError.js";
+import {
+  ApiError,
+  BadRequestError,
+  NotFoundError,
+} from "../helpers/apiError.js";
 import Contact from "../Models/submissionsQueue/contact.js";
 import AsyncHandler from "../helpers/asyncHandler.js";
 import contactformsubmitted from "../html/contactformsubmitted.js";
@@ -20,6 +24,7 @@ import TermsOfUse from "../Models/admin/termsOfUse.js";
 import Resource from "../Models/admin/resource.js";
 import WebsiteSettings from "../Models/admin/siteSettings.js";
 import CMSPage from "../Models/admin/cms/CmsPage.js";
+import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -396,6 +401,12 @@ export const getPageContent = AsyncHandler(async (req, res) => {
     );
   }
   const content = await CMSPage.findOne({ pageKey: req.params.pageKey })
+    .select("-_id")
+    .lean();
+  return res.status(200).json(ApiResponse.success("Content found.", content));
+});
+export const getHomeContent = AsyncHandler(async (req, res) => {
+  const content = await HomePageCMS.findOne({ pageKey: "home" })
     .select("-_id")
     .lean();
   return res.status(200).json(ApiResponse.success("Content found.", content));

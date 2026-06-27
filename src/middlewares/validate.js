@@ -16,6 +16,12 @@ const validate = (schema) => {
       if (req.file) {
         unlinkFiles(req.file);
       }
+      if (req.files?.featured_image1?.[0]) {
+        unlinkFiles(req.files?.featured_image1?.[0]);
+      }
+      if (req.files?.featured_image2?.[0]) {
+        unlinkFiles(req.files?.featured_image2?.[0]);
+      }
       res.status(400).json(
         new ApiError(
           400,

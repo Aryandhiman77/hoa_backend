@@ -49,6 +49,7 @@ import {
   cmsManager,
   getCmsData,
   manageHomePageCMS,
+  getHomeCMS,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -88,6 +89,7 @@ import { resourceFilters } from "../middlewares/filters/admin/resourceFilters.js
 import { websiteSettingsValidation } from "../validations/adminValidations/siteSettingsValidations.js";
 import { cmsPageValidation } from "../validations/adminValidations/cms.validatoins.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
+import { homePageCMSValidation } from "../validations/adminValidations/cms/homePageCMSValidations.js";
 const adminRouter = Router();
 
 //6. Stories - ✅ (tested and working)
@@ -267,6 +269,16 @@ adminRouter.put(
   cmsManager,
 );
 adminRouter.get("/cms/:id", getCmsData);
-adminRouter.post("/home-cms", validate(HomePageCMS), manageHomePageCMS);
+adminRouter.put(
+  "/home-cms/:id",
+  uploadMultiple.fields([
+    { name: "featured_image1", maxCount: 1 },
+    { name: "featured_image2", maxCount: 1 },
+  ]),
+  jsonParser(["hero", "highlight", "propertyComparison"]),
+  validate(homePageCMSValidation),
+  manageHomePageCMS,
+);
+adminRouter.get("/home-cms", getHomeCMS);
 
 export default adminRouter;

@@ -5,7 +5,7 @@ const buttonSchema = new mongoose.Schema(
   {
     text: { type: String, required: true, trim: true },
     link: { type: String, required: true, trim: true },
-    style: { type: String, trim: true, default: "primary" },
+    style: { type: String, trim: true, default: "red-text-white" },
   },
   { _id: false },
 );

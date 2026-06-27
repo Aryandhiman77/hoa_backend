@@ -16,6 +16,7 @@ import {
   getResources,
   getClientWebsiteSettings,
   getPageContent,
+  getHomeContent,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -96,5 +97,7 @@ appRoutes.get(
 );
 appRoutes.get("/settings", getClientWebsiteSettings);
 appRoutes.get("/content/:pageKey", getPageContent);
+
+appRoutes.get("/home-content", getHomeContent);
 
 export default appRoutes;
