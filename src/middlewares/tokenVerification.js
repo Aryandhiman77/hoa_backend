@@ -1,26 +1,36 @@
 import JWT, { decode } from "jsonwebtoken";
-import AsyncWrapper from "../Helpers/AsyncWrapper.js";
-import User from "../Models/user.js";
-import ApiError from "../Helpers/ApiError.js";
+import AsyncWrapper from "../helpers/asyncHandler.js";
+import User from "../Models/admin/adminUserSchema.js";
+import { NotFoundError, UnauthorizedError } from "../helpers/apiError.js";
 
 const tokenVerification = AsyncWrapper(async (req, res, next) => {
-  const token = req.cookies.authToken;
+  const token =
+    req.cookies?.authToken || req.headers.authorization?.split(" ")[1];
   if (!token) {
-    throw new ApiError(401, "No authorization provided.");
+    throw new UnauthorizedError("No authorization token provided.");
   }
-  const { err, data } = JWT.verify(
-    token,
-    process.env.JWT_AUTH_SECRET,
-    (err, data) => ({ err, data }),
-  );
-  if (err && err.message === "jwt expired") {
-    throw new ApiError(401, "Invalid Authorization.");
+
+  let decoded;
+  try {
+    decoded = JWT.verify(token, process.env.JWT_AUTH_SECRET);
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      throw new UnauthorizedError("Authorization token expired.");
+    }
+    throw new UnauthorizedError("Invalid authorization token.");
   }
-  const user = await User.findById(data.userId);
+
+  const user = await User.findById(decoded.userId);
   if (!user) {
-    new ApiError(404, "Invalid credentials.", "User not found.");
+    throw new NotFoundError(
+      "User not found.",
+      "Invalid credentials",
+      "USER_NOT_FOUND",
+    );
   }
+
   req.user = user;
   next();
 });
+
 export default tokenVerification;

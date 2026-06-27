@@ -53,6 +53,12 @@ import {
   manageAboutPageCMS,
   manageNonLegalAdvocateCMS,
   manageContactPageCMS,
+  getAdminLogin,
+  verifyOtp,
+  logoutAdmin,
+  getContactPageCMS,
+  getNonLegalAdvocateCMS,
+  aboutPageCMS,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -90,13 +96,28 @@ import {
 } from "../validations/adminValidations/resourceValidations.js";
 import { resourceFilters } from "../middlewares/filters/admin/resourceFilters.js";
 import { websiteSettingsValidation } from "../validations/adminValidations/siteSettingsValidations.js";
-import { cmsPageValidation } from "../validations/adminValidations/cms.validatoins.js";
+import { cmsPageValidation } from "../validations/adminValidations/cms.validations.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import { homePageCMSValidation } from "../validations/adminValidations/cms/homePageCMSValidations.js";
 import { aboutPageCMSValidation } from "../validations/adminValidations/cms/aboutPageCMSValidations.js";
 import { nonLegalAdvocateCMSValidation } from "../validations/adminValidations/cms/nonLegalAdvocatePageCMSValidations.js";
 import { contactPageCMSValidation } from "../validations/adminValidations/cms/contactPageCMSValidations.js";
+import {
+  adminLoginValidation,
+  adminVerificationOTPValidation,
+} from "../validations/adminValidations/login.validations.js";
+import tokenVerification from "../middlewares/tokenVerification.js";
 const adminRouter = Router();
+
+adminRouter.post("/login", validate(adminLoginValidation), getAdminLogin);
+adminRouter.post(
+  "/verify-otp",
+  validate(adminVerificationOTPValidation),
+  verifyOtp,
+);
+adminRouter.get("/logout", logoutAdmin);
+
+// adminRouter.use(tokenVerification);
 
 //6. Stories - ✅ (tested and working)
 //!!-> controls like flagged/approve/publish/unpublish api's must be separate, must not be in updateStoryDetails
@@ -286,11 +307,13 @@ adminRouter.put(
   manageHomePageCMS,
 );
 adminRouter.get("/home-cms", getHomeCMS);
+adminRouter.get("/about-page-cms", aboutPageCMS);
 adminRouter.put(
   "/about-cms/:id",
   validate(aboutPageCMSValidation),
   manageAboutPageCMS,
 );
+adminRouter.get("/non-legal-advocate-cms", getNonLegalAdvocateCMS);
 adminRouter.put(
   "/non-legal-advocate-cms/:id",
   uploadMultiple.fields([
@@ -301,9 +324,11 @@ adminRouter.put(
   validate(nonLegalAdvocateCMSValidation),
   manageNonLegalAdvocateCMS,
 );
+adminRouter.get("/contact-page-cms", getContactPageCMS);
 adminRouter.put(
   "/contact-page-cms/:id",
   validate(contactPageCMSValidation),
   manageContactPageCMS,
 );
+
 export default adminRouter;

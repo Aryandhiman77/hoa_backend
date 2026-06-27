@@ -23,6 +23,105 @@ import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
 import NonLegalAdvocateCMS from "../Models/admin/cms/nonLegalAdvocatePageCMS.js";
 import ContactPageCMS from "../Models/admin/cms/contactPageCMS.js";
+import { generateToken } from "../utils/tokenGenerator.js";
+import AdminUser from "../Models/admin/adminUserSchema.js";
+import { generateOTP } from "../utils/otpGenerator.js";
+import { generateAdminOtpEmail } from "../html/admin/otpEmail.js";
+
+export const getAdminLogin = asyncHandler(async (req, res) => {
+  const email = req.body?.email;
+
+  const password = req.body?.password;
+
+  if (!email || !password) {
+    throw new BadRequestError("Email and password are required");
+  }
+
+  const admin = await AdminUser.findOne({ email }).select("+password");
+
+  if (!admin) {
+    throw new BadRequestError("Invalid credentials");
+  }
+
+  // TODO:
+
+  // const isMatch = await bcrypt.compare(password, admin.password);
+
+  const otp = generateOTP();
+
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  admin.otp = otp;
+
+  admin.otpExpiresAt = otpExpiresAt;
+
+  const saved = await admin.save();
+  await mailSender({
+    to: admin.email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Admin OTP",
+    html: generateAdminOtpEmail({ otp, adminName: saved.name }),
+  });
+
+  return res.status(200).json(ApiResponse.success("OTP sent to your email"));
+});
+
+export const verifyOtp = asyncHandler(async (req, res) => {
+  const email = req.body?.email;
+
+  const otp = req.body?.otp;
+
+  if (!email || !otp) {
+    throw new BadRequestError("Email and OTP are required");
+  }
+
+  const admin = await AdminUser.findOne({ email });
+
+  if (!admin) {
+    throw new BadRequestError("Invalid credentials");
+  }
+
+  if (
+    !admin.otp ||
+    admin.otp !== otp ||
+    !admin.otpExpiresAt ||
+    admin.otpExpiresAt < new Date()
+  ) {
+    throw new BadRequestError("Invalid or expired OTP");
+  }
+
+  admin.otp = null;
+  admin.otpExpiresAt = null;
+  admin.isVerified = true;
+  admin.lastLogin = new Date();
+  await admin.save();
+
+  const token = generateToken(admin);
+  const expiryMs = parseInt(process.env.AUTH_COOKIE_EXPIRY);
+  console.log(expiryMs);
+  res.cookie("authToken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: expiryMs,
+    sameSite: "strict",
+  });
+
+  return res
+    .status(200)
+    .json(ApiResponse.success("OTP verified", { authenticated: true }));
+});
+
+export const logoutAdmin = asyncHandler(async (req, res) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  return res
+    .status(200)
+    .json(ApiResponse.success("Admin logged out successfully"));
+});
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -1519,6 +1618,47 @@ export const getHomeCMS = asyncHandler(async (req, res, next) => {
     );
   }
   return res.status(200).json(ApiResponse.success("Home CMS found.", cms));
+});
+
+export const getNonLegalAdvocateCMS = asyncHandler(async (req, res, next) => {
+  const cms = await NonLegalAdvocateCMS.findOne().lean();
+  if (!cms) {
+    throw new NotFoundError(
+      "Non-legal-Advocate CMS not found.",
+      "Non-legal-Advocate CMS not found",
+      "CMS_CONTENT_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Non-legal-Advocate Page CMS found.", cms));
+});
+export const aboutPageCMS = asyncHandler(async (req, res, next) => {
+  const cms = await AboutPageCMS.findOne().lean();
+  if (!cms) {
+    throw new NotFoundError(
+      "Non-legal-Advocate CMS not found.",
+      "Non-legal-Advocate CMS not found",
+      "CMS_CONTENT_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Non-legal-Advocate Page CMS found.", cms));
+});
+
+export const getContactPageCMS = asyncHandler(async (req, res, next) => {
+  const cms = await ContactPageCMS.findOne().lean();
+  if (!cms) {
+    throw new NotFoundError(
+      "Contact Page CMS not found.",
+      "Contact Page CMS not found",
+      "CMS_CONTENT_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Contact Page CMS found.", cms));
 });
 export const manageAboutPageCMS = asyncHandler(async (req, res) => {
   const cmsId = req.params?.id;
