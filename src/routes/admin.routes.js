@@ -51,6 +51,7 @@ import {
   manageHomePageCMS,
   getHomeCMS,
   manageAboutPageCMS,
+  manageNonLegalAdvocateCMS,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -92,6 +93,7 @@ import { cmsPageValidation } from "../validations/adminValidations/cms.validatoi
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import { homePageCMSValidation } from "../validations/adminValidations/cms/homePageCMSValidations.js";
 import { aboutPageCMSValidation } from "../validations/adminValidations/cms/aboutPageCMSValidations.js";
+import { nonLegalAdvocateCMSValidation } from "../validations/adminValidations/cms/nonLegalAdvocatePageCMSValidations.js";
 const adminRouter = Router();
 
 //6. Stories - ✅ (tested and working)
@@ -286,5 +288,15 @@ adminRouter.put(
   "/about-cms/:id",
   validate(aboutPageCMSValidation),
   manageAboutPageCMS,
+);
+adminRouter.put(
+  "/non-legal-advocate-cms/:id",
+  uploadMultiple.fields([
+    { name: "background_image", maxCount: 1 },
+    { name: "featured_image", maxCount: 1 },
+  ]),
+  jsonParser(["buttons", "cards"]),
+  validate(nonLegalAdvocateCMSValidation),
+  manageNonLegalAdvocateCMS,
 );
 export default adminRouter;

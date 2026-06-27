@@ -21,6 +21,7 @@ import WebsiteSettings from "../Models/admin/siteSettings.js";
 import CMSPage from "../Models/admin/cms/CmsPage.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
+import NonLegalAdvocateCMS from "../Models/admin/cms/nonLegalAdvocatePageCMS.js";
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -1541,4 +1542,87 @@ export const manageAboutPageCMS = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(ApiResponse.success("About CMS updated successfully.", saved));
+});
+
+export const manageNonLegalAdvocateCMS = asyncHandler(async (req, res) => {
+  try {
+    const cmsId = req.params?.id;
+    if (!cmsId) {
+      throw new NotFoundError(
+        "CMS not found",
+        "CMS not found",
+        "CMS_NOT_FOUND",
+      );
+    }
+
+    const CMS = await NonLegalAdvocateCMS.findById(cmsId);
+    if (!CMS) {
+      throw new NotFoundError(
+        "CMS not found",
+        "CMS not found",
+        "CMS_NOT_FOUND",
+      );
+    }
+
+    const updatedData = { ...req.body };
+
+    // Handle uploaded images
+    const filesToRemove = [];
+
+    // Featured image
+    if (req.files?.featured_image?.[0]) {
+      if (CMS.featured_image1?.url) filesToRemove.push(CMS.featured_image1.url);
+      updatedData.featured_image1 = {
+        url: `/uploads/${req.files.featured_image[0].filename}`,
+        altText: updatedData.featured_image_alt || "",
+      };
+    }
+
+    // Background image
+    if (req.files?.background_image?.[0]) {
+      if (CMS.background_image?.url)
+        filesToRemove.push(CMS.background_image.url);
+      updatedData.background_image = {
+        url: `/uploads/${req.files.background_image[0].filename}`,
+        altText: updatedData.background_image_alt || "",
+      };
+    }
+
+    // Unlink old images
+    if (filesToRemove.length) {
+      await unlinkFilesFromServerUsingPath(filesToRemove);
+    }
+
+    // Remove alt fields from body to prevent duplication
+    delete updatedData.featured_image_alt;
+    delete updatedData.background_image_alt;
+
+    // Update CMS document
+    const saved = await NonLegalAdvocateCMS.findByIdAndUpdate(
+      cmsId,
+      updatedData,
+      {
+        returnDocument: "after",
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Non-Legal Advocate CMS updated successfully.",
+      data: saved,
+    });
+  } catch (error) {
+    // Cleanup uploaded files if error
+    if (req.files) {
+      // Cleanup uploaded files on error
+      if (req.files?.featured_image?.[0]) {
+        unlinkFiles(req.files?.featured_image?.[0]);
+      }
+      if (req.files?.background_image?.[0]) {
+        unlinkFiles(req.files?.background_image?.[0]);
+      }
+      next(error);
+    }
+    next(error);
+  }
 });

@@ -101,5 +101,6 @@ appRoutes.get("/content/:pageKey", getPageContent);
 
 appRoutes.get("/home-content", getHomeContent);
 appRoutes.get("/about-content", getAboutPageContent);
+// appRoutes.get("/non-legal-advocate-content", getAboutPageContent);
 
 export default appRoutes;
