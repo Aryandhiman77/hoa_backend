@@ -50,6 +50,7 @@ import {
   getCmsData,
   manageHomePageCMS,
   getHomeCMS,
+  manageAboutPageCMS,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -90,6 +91,7 @@ import { websiteSettingsValidation } from "../validations/adminValidations/siteS
 import { cmsPageValidation } from "../validations/adminValidations/cms.validatoins.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import { homePageCMSValidation } from "../validations/adminValidations/cms/homePageCMSValidations.js";
+import { aboutPageCMSValidation } from "../validations/adminValidations/cms/aboutPageCMSValidations.js";
 const adminRouter = Router();
 
 //6. Stories - ✅ (tested and working)
@@ -280,5 +282,9 @@ adminRouter.put(
   manageHomePageCMS,
 );
 adminRouter.get("/home-cms", getHomeCMS);
-
+adminRouter.put(
+  "/about-cms/:id",
+  validate(aboutPageCMSValidation),
+  manageAboutPageCMS,
+);
 export default adminRouter;

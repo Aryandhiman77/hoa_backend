@@ -20,6 +20,7 @@ import Resource from "../Models/admin/resource.js";
 import WebsiteSettings from "../Models/admin/siteSettings.js";
 import CMSPage from "../Models/admin/cms/CmsPage.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
+import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -1484,7 +1485,13 @@ export const manageHomePageCMS = asyncHandler(async (req, res, next) => {
     const saved = await HomePageCMS.findByIdAndUpdate(cmsId, updatedData, {
       returnDocument: "after",
     });
-
+    if (!saved) {
+      throw new BadRequestError(
+        "Failed to save changes, please try again.",
+        "Failed to save changes, please try again.",
+        "FAILED_TO_SAVE_CHANGES",
+      );
+    }
     return res
       .status(200)
       .json(ApiResponse.success("Home CMS updated successfully.", saved));
@@ -1510,4 +1517,28 @@ export const getHomeCMS = asyncHandler(async (req, res, next) => {
     );
   }
   return res.status(200).json(ApiResponse.success("Home CMS found.", cms));
+});
+export const manageAboutPageCMS = asyncHandler(async (req, res) => {
+  const cmsId = req.params?.id;
+  if (!cmsId) {
+    throw new NotFoundError(
+      "Home CMS not found.",
+      "Home CMS not found",
+      "CMS_CONTENT_NOT_FOUND",
+    );
+  }
+
+  const saved = await AboutPageCMS.findByIdAndUpdate(cmsId, req.data, {
+    returnDocument: "after",
+  });
+  if (!saved) {
+    throw new BadRequestError(
+      "Failed to save changes, please try again.",
+      "Failed to save changes, please try again.",
+      "FAILED_TO_SAVE_CHANGES",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("About CMS updated successfully.", saved));
 });

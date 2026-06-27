@@ -25,6 +25,7 @@ import Resource from "../Models/admin/resource.js";
 import WebsiteSettings from "../Models/admin/siteSettings.js";
 import CMSPage from "../Models/admin/cms/CmsPage.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
+import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -407,7 +408,13 @@ export const getPageContent = AsyncHandler(async (req, res) => {
 });
 export const getHomeContent = AsyncHandler(async (req, res) => {
   const content = await HomePageCMS.findOne({ pageKey: "home" })
-    .select("-_id")
+    .select("-_id -__v -createdAt")
+    .lean();
+  return res.status(200).json(ApiResponse.success("Content found.", content));
+});
+export const getAboutPageContent = AsyncHandler(async (req, res) => {
+  const content = await AboutPageCMS.findOne({ pageKey: "about" })
+    .select("-_id -__v -createdAt")
     .lean();
   return res.status(200).json(ApiResponse.success("Content found.", content));
 });
