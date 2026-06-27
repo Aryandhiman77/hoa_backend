@@ -18,6 +18,8 @@ import {
   getPageContent,
   getHomeContent,
   getAboutPageContent,
+  getNonLegalAdvocatePageContent,
+  getContactPageContent,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -99,8 +101,12 @@ appRoutes.get(
 appRoutes.get("/settings", getClientWebsiteSettings);
 appRoutes.get("/content/:pageKey", getPageContent);
 
-appRoutes.get("/home-content", getHomeContent);
-appRoutes.get("/about-content", getAboutPageContent);
-// appRoutes.get("/non-legal-advocate-content", getAboutPageContent);
+appRoutes.get("/home-page-content", getHomeContent);
+appRoutes.get("/about-page-content", getAboutPageContent);
+appRoutes.get(
+  "/non-legal-advocate-page-content",
+  getNonLegalAdvocatePageContent,
+);
+appRoutes.get("/contact-page-content", getContactPageContent);
 
 export default appRoutes;

@@ -22,6 +22,7 @@ import CMSPage from "../Models/admin/cms/CmsPage.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
 import NonLegalAdvocateCMS from "../Models/admin/cms/nonLegalAdvocatePageCMS.js";
+import ContactPageCMS from "../Models/admin/cms/contactPageCMS.js";
 
 export const updateStory = asyncHandler(async (req, res) => {
   try {
@@ -1625,4 +1626,33 @@ export const manageNonLegalAdvocateCMS = asyncHandler(async (req, res) => {
     }
     next(error);
   }
+});
+
+export const manageContactPageCMS = asyncHandler(async (req, res, next) => {
+  const cmsId = req.params?.id;
+  if (!cmsId) {
+    throw new NotFoundError("CMS not found", "CMS not found", "CMS_NOT_FOUND");
+  }
+
+  const CMS = await ContactPageCMS.findById(cmsId);
+  if (!CMS) {
+    throw new NotFoundError("CMS not found", "CMS not found", "CMS_NOT_FOUND");
+  }
+
+  const updatedData = { ...req.body };
+
+  // Ensure formFields length never exceeds schema (max 4)
+  if (updatedData.formFields?.length > 4) {
+    updatedData.formFields = updatedData.formFields.slice(0, 4);
+  }
+
+  // Update CMS document
+  const saved = await ContactPageCMS.findByIdAndUpdate(cmsId, updatedData, {
+    returnDocument: "after",
+    upsert: true,
+  });
+
+  return res
+    .status(200)
+    .json(ApiResponse.success("Contact page CMS updated successfully.", saved));
 });

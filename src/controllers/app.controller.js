@@ -26,6 +26,8 @@ import WebsiteSettings from "../Models/admin/siteSettings.js";
 import CMSPage from "../Models/admin/cms/CmsPage.js";
 import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
+import NonLegalAdvocateCMS from "../Models/admin/cms/nonLegalAdvocatePageCMS.js";
+import ContactPageCMS from "../Models/admin/cms/contactPageCMS.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -414,6 +416,22 @@ export const getHomeContent = AsyncHandler(async (req, res) => {
 });
 export const getAboutPageContent = AsyncHandler(async (req, res) => {
   const content = await AboutPageCMS.findOne({ pageKey: "about" })
+    .select("-_id -__v -createdAt")
+    .lean();
+  return res.status(200).json(ApiResponse.success("Content found.", content));
+});
+export const getNonLegalAdvocatePageContent = AsyncHandler(async (req, res) => {
+  const content = await NonLegalAdvocateCMS.findOne({
+    pageKey: "non-legal-advocate",
+  })
+    .select("-_id -__v -createdAt")
+    .lean();
+  return res.status(200).json(ApiResponse.success("Content found.", content));
+});
+export const getContactPageContent = AsyncHandler(async (req, res) => {
+  const content = await ContactPageCMS.findOne({
+    pageKey: "contact",
+  })
     .select("-_id -__v -createdAt")
     .lean();
   return res.status(200).json(ApiResponse.success("Content found.", content));
