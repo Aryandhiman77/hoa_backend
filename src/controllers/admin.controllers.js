@@ -28,6 +28,7 @@ import AdminUser from "../Models/admin/adminUserSchema.js";
 import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAdminOtpEmail } from "../html/admin/otpEmail.js";
 import bcrypt from "bcrypt";
+import Notification from "../Models/admin/notification.js";
 
 export const getAdminLogin = asyncHandler(async (req, res) => {
   const email = req.body?.email;
@@ -1833,4 +1834,73 @@ export const manageContactPageCMS = asyncHandler(async (req, res, next) => {
   return res
     .status(200)
     .json(ApiResponse.success("Contact page CMS updated successfully.", saved));
+});
+
+export const getNotifications = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 5;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = { createdAt: -1 };
+
+  const [notifications, totalDocuments] = await Promise.all([
+    await Notification.find(req.notifications_query)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .select("title description createdAt isRead type relatedModule relatedId")
+      .lean(),
+    Story.countDocuments(req.notifications_query).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(
+      ApiResponse.paginated(notifications, page + 1, limit, totalDocuments),
+    );
+});
+export const readNotification = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Notification not found.",
+      "Notification not found",
+      "NOTIFICATION_NOT_FOUND",
+    );
+  }
+  const updated = await Notification.findByIdAndUpdate(
+    req.params.id,
+    {
+      isRead: true,
+      type: "light",
+    },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Notification not found.",
+      "Notification not found",
+      "NOTIFICATION_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Notification readed.", updated));
+});
+export const deleteNotification = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Notification not found.",
+      "Notification not found",
+      "NOTIFICATION_NOT_FOUND",
+    );
+  }
+  const updated = await Notification.findByIdAndDelete(req.params.id);
+  if (!updated) {
+    throw new NotFoundError(
+      "Notification not found.",
+      "Notification not found",
+      "NOTIFICATION_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success("Notification deleted.", null));
 });

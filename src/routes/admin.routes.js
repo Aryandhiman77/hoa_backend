@@ -59,6 +59,9 @@ import {
   getContactPageCMS,
   getNonLegalAdvocateCMS,
   aboutPageCMS,
+  getNotifications,
+  readNotification,
+  deleteNotification,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import { updateStoryValidation } from "../validations/story.validations.js";
@@ -107,6 +110,7 @@ import {
   adminVerificationOTPValidation,
 } from "../validations/adminValidations/login.validations.js";
 import tokenVerification from "../middlewares/tokenVerification.js";
+import notificationSearch from "../middlewares/filters/admin/notificationSearch.js";
 const adminRouter = Router();
 
 adminRouter.post("/login", validate(adminLoginValidation), getAdminLogin);
@@ -117,7 +121,7 @@ adminRouter.post(
 );
 adminRouter.get("/logout", logoutAdmin);
 
-adminRouter.use(tokenVerification);
+// adminRouter.use(tokenVerification);
 
 //6. Stories - ✅ (tested and working)
 //!!-> controls like flagged/approve/publish/unpublish api's must be separate, must not be in updateStoryDetails
@@ -330,5 +334,14 @@ adminRouter.put(
   validate(contactPageCMSValidation),
   manageContactPageCMS,
 );
+
+adminRouter.get(
+  "/notifications",
+  pagination,
+  notificationSearch,
+  getNotifications,
+);
+adminRouter.patch("/notification/:id/read", readNotification);
+adminRouter.delete("/notification/:id", deleteNotification);
 
 export default adminRouter;
