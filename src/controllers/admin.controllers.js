@@ -27,6 +27,7 @@ import { generateToken } from "../utils/tokenGenerator.js";
 import AdminUser from "../Models/admin/adminUserSchema.js";
 import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAdminOtpEmail } from "../html/admin/otpEmail.js";
+import bcrypt from "bcrypt";
 
 export const getAdminLogin = asyncHandler(async (req, res) => {
   const email = req.body?.email;
@@ -67,6 +68,12 @@ export const getAdminLogin = asyncHandler(async (req, res) => {
   } else {
     const token = generateToken(admin);
     const expiryMs = parseInt(process.env.AUTH_COOKIE_EXPIRY);
+    admin.isVerified = true;
+    admin.lastLogin = new Date();
+    const saved = await admin.save();
+    if (!saved) {
+      throw new BadRequestError("Failed to login, please try again.");
+    }
     res.cookie("authToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -74,9 +81,16 @@ export const getAdminLogin = asyncHandler(async (req, res) => {
       sameSite: "strict",
     });
 
-    return res
-      .status(200)
-      .json(ApiResponse.success("OTP verified", { authenticated: true }));
+    return res.status(200).json(
+      ApiResponse.success("Login succesful.", {
+        authenticated: true,
+        user: {
+          name: saved.name,
+          email: saved.email,
+          lastLogin: saved.lastLogin,
+        },
+      }),
+    );
   }
 });
 
@@ -108,11 +122,13 @@ export const verifyOtp = asyncHandler(async (req, res) => {
   admin.otpExpiresAt = null;
   admin.isVerified = true;
   admin.lastLogin = new Date();
-  await admin.save();
+  const saved = await admin.save();
+  if (!saved) {
+    throw new BadRequestError("Failed to login, please try again.");
+  }
 
   const token = generateToken(admin);
   const expiryMs = parseInt(process.env.AUTH_COOKIE_EXPIRY);
-  console.log(expiryMs);
   res.cookie("authToken", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -120,9 +136,16 @@ export const verifyOtp = asyncHandler(async (req, res) => {
     sameSite: "strict",
   });
 
-  return res
-    .status(200)
-    .json(ApiResponse.success("OTP verified", { authenticated: true }));
+  return res.status(200).json(
+    ApiResponse.success("OTP verified", {
+      authenticated: true,
+      user: {
+        name: saved.name,
+        email: saved.email,
+        lastLogin: saved.lastLogin,
+      },
+    }),
+  );
 });
 
 export const logoutAdmin = asyncHandler(async (req, res) => {
