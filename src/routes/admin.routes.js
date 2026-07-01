@@ -117,7 +117,7 @@ adminRouter.post(
 );
 adminRouter.get("/logout", logoutAdmin);
 
-// adminRouter.use(tokenVerification);
+adminRouter.use(tokenVerification);
 
 //6. Stories - ✅ (tested and working)
 //!!-> controls like flagged/approve/publish/unpublish api's must be separate, must not be in updateStoryDetails
