@@ -44,9 +44,10 @@ export const getAdminLogin = asyncHandler(async (req, res) => {
     throw new BadRequestError("Invalid credentials");
   }
 
-  // TODO:
-
   const isMatch = await bcrypt.compare(password, admin.password);
+  if (!isMatch) {
+    throw new BadRequestError("Invalid credentials.");
+  }
 
   if (appConfig.IS_OTP_VERIFICATION_ENABLED) {
     const otp = generateOTP();
