@@ -45,25 +45,39 @@ export const getAdminLogin = asyncHandler(async (req, res) => {
 
   // TODO:
 
-  // const isMatch = await bcrypt.compare(password, admin.password);
+  const isMatch = await bcrypt.compare(password, admin.password);
 
-  const otp = generateOTP();
+  if (appConfig.IS_OTP_VERIFICATION_ENABLED) {
+    const otp = generateOTP();
 
-  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  admin.otp = otp;
+    admin.otp = otp;
 
-  admin.otpExpiresAt = otpExpiresAt;
+    admin.otpExpiresAt = otpExpiresAt;
+    const saved = await admin.save();
+    await mailSender({
+      to: admin.email,
+      from: process.env.SUPPORT_MAIL,
+      subject: "HOA Admin OTP",
+      html: generateAdminOtpEmail({ otp, adminName: saved.name }),
+    });
 
-  const saved = await admin.save();
-  await mailSender({
-    to: admin.email,
-    from: process.env.SUPPORT_MAIL,
-    subject: "HOA Admin OTP",
-    html: generateAdminOtpEmail({ otp, adminName: saved.name }),
-  });
+    return res.status(200).json(ApiResponse.success("OTP sent to your email"));
+  } else {
+    const token = generateToken(admin);
+    const expiryMs = parseInt(process.env.AUTH_COOKIE_EXPIRY);
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: expiryMs,
+      sameSite: "strict",
+    });
 
-  return res.status(200).json(ApiResponse.success("OTP sent to your email"));
+    return res
+      .status(200)
+      .json(ApiResponse.success("OTP verified", { authenticated: true }));
+  }
 });
 
 export const verifyOtp = asyncHandler(async (req, res) => {
