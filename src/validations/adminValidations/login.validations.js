@@ -1,3 +1,4 @@
+import Joi from "joi";
 export const adminLoginValidation = Joi.object({
   email: Joi.string()
     .email({ tlds: { allow: false } })
@@ -13,8 +14,6 @@ export const adminLoginValidation = Joi.object({
     "string.min": "Password must be at least 6 characters",
   }),
 });
-
-import Joi from "joi";
 
 export const adminVerificationOTPValidation = Joi.object({
   email: Joi.string()

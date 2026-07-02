@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
+import { ACCESS_TOKEN } from "../configs/index.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-const JWT_EXPIRY = process.env.JWT_EXPIRY || "1h";
+const JWT_SECRET = ACCESS_TOKEN.secret;
+const JWT_EXPIRY = ACCESS_TOKEN.expiry;
 
 export const generateToken = (admin) => {
   return jwt.sign({ id: admin._id, email: admin.email }, JWT_SECRET, {

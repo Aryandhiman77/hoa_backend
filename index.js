@@ -9,8 +9,9 @@ import { APP_URL } from "./src/configs/index.js";
 import path from "path";
 import adminRouter from "./src/routes/admin.routes.js";
 import { config } from "dotenv";
+import cookieParser from "cookie-parser";
 config();
-
+app.use(cookieParser());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -42,7 +43,6 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/public", appRoutes);
 app.use("/admin", adminRouter);
-
 
 app.use(errorHandler);
 
