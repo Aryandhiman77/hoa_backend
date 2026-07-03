@@ -10,6 +10,8 @@ import path from "path";
 import adminRouter from "./src/routes/admin.routes.js";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
+import { rateLimit } from "express-rate-limit";
+
 config();
 app.use(cookieParser());
 const allowedOrigins = [

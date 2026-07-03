@@ -39,3 +39,13 @@ export class UnauthorizedError extends ApiError {
     super(401, message, errors, code);
   }
 }
+
+export class TooManyRequestsError extends ApiError {
+  constructor(
+    message = "Too Many Requests",
+    errors = null,
+    code = "TOO_MANY_REQUESTS",
+  ) {
+    super(429, message, errors, code);
+  }
+}

@@ -111,15 +111,25 @@ import {
 } from "../validations/adminValidations/login.validations.js";
 import tokenVerification from "../middlewares/tokenVerification.js";
 import notificationSearch from "../middlewares/filters/admin/notificationSearch.js";
+import {
+  authRateLimiter,
+  logoutRateLimiter,
+} from "../middlewares/rateLimits/rateLimits.js";
 const adminRouter = Router();
 
-adminRouter.post("/login", validate(adminLoginValidation), getAdminLogin);
+adminRouter.post(
+  "/login",
+  authRateLimiter,
+  validate(adminLoginValidation),
+  getAdminLogin,
+);
 adminRouter.post(
   "/verify-otp",
+  authRateLimiter,
   validate(adminVerificationOTPValidation),
   verifyOtp,
 );
-adminRouter.get("/logout", logoutAdmin);
+adminRouter.get("/logout", logoutRateLimiter, logoutAdmin);
 
 adminRouter.use(tokenVerification);
 
