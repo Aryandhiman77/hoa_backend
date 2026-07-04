@@ -142,7 +142,6 @@ adminRouter.get("/logout", logoutRateLimiter, logoutAdmin);
 adminRouter.use(tokenVerification);
 
 //6. Stories - ✅ (tested and working)
-//!!-> controls like flagged/approve/publish/unpublish api's must be separate, must not be in updateStoryDetails
 // todo -> upload review is pending in admin side
 adminRouter
   .get("/stories", pagination, storyFilters, getStoriesByQuery)
