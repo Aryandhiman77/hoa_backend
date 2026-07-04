@@ -1513,7 +1513,7 @@ export const settingsUpdationController = asyncHandler(
       const updated = await WebsiteSettings.findByIdAndUpdate(
         id,
         req.data,
-        { new: true }, // return the updated document
+        { returnDocument: "after" }, // return the updated document
       );
 
       if (!updated) {

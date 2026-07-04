@@ -70,6 +70,7 @@ export const websiteSettingsValidation = Joi.object({
     .label("Footer"),
 
   disclaimer: Joi.string().allow("").label("Disclaimer"),
+  attorneyDisclaimer: Joi.string().allow("").label("Attorney Disclaimer"),
 
   navigationLabels: Joi.array()
     .items(

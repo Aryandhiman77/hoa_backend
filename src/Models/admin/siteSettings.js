@@ -53,6 +53,11 @@ const websiteSettingsSchema = new mongoose.Schema(
 
     disclaimer: { type: String, trim: true },
 
+    attorneyDisclaimer: {
+      type: String,
+      trim: true,
+    },
+
     navigationLabels: { type: [navigationLabelSchema], default: [] },
 
     defaultSEO: { type: seoSchema },
