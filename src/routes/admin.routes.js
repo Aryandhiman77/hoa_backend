@@ -171,13 +171,13 @@ adminRouter
 // faq //✅
 adminRouter
   .post("/faq/create", validate(faqValidationSchema), createFaq) //✅
-  .get("/faq/:id", getSingleFaq) //✅
   .get(
     "/faqs", //✅
     pagination,
     faqFilters,
     getFaqs,
   )
+  .get("/faq/:id", getSingleFaq) //✅
   .put(
     "/faq/update-details/:id", //✅
     validate(faqValidationSchema),
