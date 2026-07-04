@@ -11,9 +11,11 @@ import adminRouter from "./src/routes/admin.routes.js";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
+import helmet from "helmet";
 
 config();
 app.use(cookieParser());
+app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
