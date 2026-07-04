@@ -266,10 +266,20 @@ export const getStoryDetails = asyncHandler(async (req, res) => {
 
 export const updateStoryDetails = asyncHandler(async (req, res) => {
   const storyId = req.params?.id;
-  if (!storyId) throw new BadRequestError("Story ID required.");
+  if (!storyId)
+    throw new BadRequestError(
+      "Story ID required.",
+      "Story id required",
+      "STORY_ID_MISSING",
+    );
 
   const story = await Story.findById(storyId);
-  if (!story) throw new NotFoundError("Story not found.");
+  if (!story)
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
 
   // update editable fields
   story.story_name = req.data.story_name;
@@ -282,37 +292,141 @@ export const updateStoryDetails = asyncHandler(async (req, res) => {
   story.story_anonymous = req.data.story_anonymous;
   story.adminNotes = req.data.adminNotes;
 
-  // handle status changes
-  switch (req.data.status) {
-    case "approved":
-      story.status = "approved";
-      story.isApproved = true;
-      break;
-    case "published":
-      if (!story.isApproved) throw new BadRequestError("Must approve first.");
-      story.status = "published";
-      story.isPublished = true;
-      break;
-    case "flagged":
-      story.status = "flagged";
-      break;
-    case "unpublished":
-      story.status = "unpublished";
-      break;
-    case "archived":
-      story.status = "archived";
-      break;
-    default:
-      story.status = req.data.status || story.status;
-  }
-
   const savedStory = await story.save();
-
-  // await sendStoryEmail(savedStory, savedStory.status);
 
   return res
     .status(200)
     .json(ApiResponse.success("Story updated.", savedStory));
+});
+
+export const flagStory = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const updated = await Story.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: "flagged",
+      flagReason: req.data?.flagReason || "",
+    },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Story flagged.", updated));
+});
+
+export const approveStory = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const updated = await Story.findByIdAndUpdate(
+    req.params.id,
+    { status: "approved", isApproved: true },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Story approved.", updated));
+});
+
+export const publishStory = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const story = await Story.findById(req.params.id);
+  if (!story) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  if (!story.isApproved) {
+    throw new BadRequestError(
+      "Approve story first.",
+      "Approve story first.",
+      "STORY_NOT_APPROVED",
+    );
+  }
+  story.isPublished = true;
+  story.status = "published";
+  const saved = await story.save();
+  return res.status(200).json(ApiResponse.success("Story published.", saved));
+});
+
+export const unpublishStory = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const story = await Story.findById(req.params.id);
+  if (!story) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  if (!story.isPublished) {
+    throw new BadRequestError(
+      "Story is not published.",
+      "Story is not published.",
+      "STORY_NOT_PUBLISHED",
+    );
+  }
+  story.isPublished = false;
+  story.status = "unpublished";
+  const saved = await story.save();
+  return res.status(200).json(ApiResponse.success("Story unpublished.", saved));
+});
+
+export const archiveStory = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const updated = await Story.findByIdAndUpdate(
+    req.params.id,
+    { status: "archived" },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Story archived.", updated));
 });
 
 const uploadedSubmitYourStoryFiles = (files) => {

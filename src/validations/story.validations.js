@@ -148,14 +148,22 @@ export const updateStoryValidation = Joi.object({
     .messages({
       "any.required": "Anonymous publish choice is required",
     }),
-  status: Joi.string()
-    .label("Status")
-    .valid("flagged", "approved", "published", "unpublished", "archived")
-    .optional(),
 
   adminNotes: Joi.string()
     .trim()
     .label("Admin Internal Notes")
     .allow("", null)
     .optional(),
+});
+
+export const storyFlagValidation = Joi.object({
+  flagReason: Joi.string()
+    .trim()
+    .allow("", null)
+    .optional()
+    .label("Flag Reason")
+    .messages({
+      "string.base": "Flag reason must be a string",
+      "string.empty": "Flag reason cannot be empty",
+    }),
 });

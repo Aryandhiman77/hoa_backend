@@ -62,9 +62,17 @@ import {
   getNotifications,
   readNotification,
   deleteNotification,
+  flagStory,
+  approveStory,
+  publishStory,
+  unpublishStory,
+  archiveStory,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
-import { updateStoryValidation } from "../validations/story.validations.js";
+import {
+  storyFlagValidation,
+  updateStoryValidation,
+} from "../validations/story.validations.js";
 import { storyFilters } from "../middlewares/filters/admin/storiesFilter.js";
 import pagination from "../middlewares/filters/common/pagination.js";
 import { appConfig } from "../configs/index.js";
@@ -145,7 +153,16 @@ adminRouter
     uploadMultiple.array("uploads", appConfig.max_story_uploads_length),
     updateStoryMedia,
   )
-  .delete("/story/remove-uploads/:id", removeMediaFromStory);
+  .delete("/story/remove-uploads/:id", removeMediaFromStory)
+  .patch(
+    "/story/update-status/flag/:id",
+    validate(storyFlagValidation),
+    flagStory,
+  )
+  .patch("/story/update-status/approve/:id", approveStory)
+  .patch("/story/update-status/publish/:id", publishStory)
+  .patch("/story/update-status/unpublish/:id", unpublishStory)
+  .patch("/story/update-status/archive/:id", archiveStory);
 
 // attorneys listing (tested and working properly)
 adminRouter

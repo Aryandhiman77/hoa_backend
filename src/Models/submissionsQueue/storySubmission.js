@@ -161,6 +161,11 @@ const storySchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    flagReason: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
     reviewedAt: {
       type: Date,

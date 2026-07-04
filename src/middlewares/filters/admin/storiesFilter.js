@@ -1,5 +1,5 @@
 export const storyFilters = (req, res, next) => {
-  const { search } = req.query;
+  const { search, status } = req.query;
 
   const query = {};
 
@@ -15,6 +15,9 @@ export const storyFilters = (req, res, next) => {
       { story_state: { $regex: search, $options: "i" } },
       { story_issue_type: { $regex: search, $options: "i" } },
     ];
+  }
+  if (status) {
+    query.status = status; // e.g. ?status=flagged for the moderation queue
   }
 
   req.story_query = query;
