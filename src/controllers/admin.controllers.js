@@ -1959,7 +1959,7 @@ export const getNotifications = asyncHandler(async (req, res) => {
   const sorting = { createdAt: -1 };
 
   const [notifications, totalDocuments] = await Promise.all([
-    await Notification.find(req.notifications_query)
+    Notification.find(req.notifications_query)
       .sort(sorting)
       .limit(limit)
       .skip(skip)
@@ -2022,7 +2022,6 @@ export const deleteNotification = asyncHandler(async (req, res) => {
 });
 
 export const getDashboardRecordsCount = asyncHandler(async (req, res) => {
-  // stories
   const [
     stories,
     nonLegalAdvocates,
@@ -2033,17 +2032,28 @@ export const getDashboardRecordsCount = asyncHandler(async (req, res) => {
     blogPosts,
     fAQs,
     pages,
-  ] = await [
+  ] = await Promise.all([
     Story.countDocuments().lean(),
     NonLegalAdvocate.countDocuments().lean(),
     Attorney.countDocuments().lean(),
-    Contact.countDocuments(),
-    Notification.countDocuments({ isRead: false }).lean(),
+    Contact.countDocuments().lean(),
+    Notification.countDocuments({ isRead: false }),
     Resource.countDocuments().lean(),
     BlogPost.countDocuments().lean(),
     FAQ.countDocuments().lean(),
     Page.countDocuments().lean(),
-  ];
+  ]);
+  console.log({
+    stories,
+    nonLegalAdvocates,
+    attorneys,
+    contacts,
+    notifications,
+    resources,
+    blogPosts,
+    fAQs,
+    pages,
+  });
   return res.status(200).json(
     ApiResponse.success("Dashboard Counts found.", {
       stories,
