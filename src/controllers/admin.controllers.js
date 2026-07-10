@@ -29,6 +29,8 @@ import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAdminOtpEmail } from "../html/admin/otpEmail.js";
 import bcrypt from "bcrypt";
 import Notification from "../Models/admin/notification.js";
+import NonLegalAdvocate from "../Models/submissionsQueue/nonLegalAdvocate.js";
+import Contact from "../Models/submissionsQueue/contact.js";
 
 export const getAdminLogin = asyncHandler(async (req, res) => {
   const email = req.body?.email;
@@ -2017,4 +2019,42 @@ export const deleteNotification = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(ApiResponse.success("Notification deleted.", null));
+});
+
+export const getDashboardRecordsCount = asyncHandler(async (req, res) => {
+  // stories
+  const [
+    stories,
+    nonLegalAdvocates,
+    attorneys,
+    contacts,
+    notifications,
+    resources,
+    blogPosts,
+    fAQs,
+    pages,
+  ] = await [
+    Story.countDocuments().lean(),
+    NonLegalAdvocate.countDocuments().lean(),
+    Attorney.countDocuments().lean(),
+    Contact.countDocuments(),
+    Notification.countDocuments({ isRead: false }).lean(),
+    Resource.countDocuments().lean(),
+    BlogPost.countDocuments().lean(),
+    FAQ.countDocuments().lean(),
+    Page.countDocuments().lean(),
+  ];
+  return res.status(200).json(
+    ApiResponse.success("Dashboard Counts found.", {
+      stories,
+      nonLegalAdvocates,
+      attorneys,
+      contacts,
+      notifications,
+      resources,
+      blogPosts,
+      fAQs,
+      pages,
+    }),
+  );
 });

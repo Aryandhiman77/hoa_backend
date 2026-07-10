@@ -370,4 +370,6 @@ adminRouter.get(
 adminRouter.patch("/notification/:id/read", readNotification);
 adminRouter.delete("/notification/:id", deleteNotification);
 
+adminRouter.get("/records-count",getDashboardRecordsCount);
+
 export default adminRouter;
