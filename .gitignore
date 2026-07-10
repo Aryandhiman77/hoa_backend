@@ -1,7 +1,9 @@
+# Environment
 .env
-./public/uploads/*
-node_modules
 
+# Dependencies
+node_modules/
+
+# User uploads
 public/uploads/*
-
 !public/uploads/.gitkeep
