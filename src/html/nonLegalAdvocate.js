@@ -17,7 +17,7 @@ const nonLegalAdvocateSubmitted = (name = "there") => {
 
                 <tr>
                   <td align="center" style="padding:30px 25px 15px;">
-                    <img src="logo.png" alt="Website Logo" style="max-width:150px; height:auto;" />
+                    <img src="hoa-logo.png" alt="Website Logo" style="max-width:150px; height:auto;" />
                   </td>
                 </tr>
 

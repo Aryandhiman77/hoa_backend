@@ -110,7 +110,7 @@ export default function (name) {
   <body>
     <div class="success-wrapper">
       <div class="logo-box">
-        <img src="logo.png" alt="Website Logo" />
+        <img src="hoa-logo.png" alt="Website Logo" />
       </div>
 
       <div class="success-icon">✓</div>
