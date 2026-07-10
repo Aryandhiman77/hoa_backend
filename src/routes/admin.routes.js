@@ -367,7 +367,7 @@ adminRouter.get(
   getContacts,
 );
 
-adminRouter.put(
+adminRouter.patch(
   "/contact/update-status/:id",
   validate(editContactStatusValidation),
   editContactStatus,
