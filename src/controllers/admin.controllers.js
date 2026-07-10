@@ -1815,6 +1815,26 @@ export const getContactPageCMS = asyncHandler(async (req, res, next) => {
     .status(200)
     .json(ApiResponse.success("Contact Page CMS found.", cms));
 });
+
+export const getContacts = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 5;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = { createdAt: -1 };
+
+  const [contacts, totalDocuments] = await Promise.all([
+    Contact.find(req.contact_query)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .lean(),
+    Contact.countDocuments(req.contact_query).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(contacts, page + 1, limit, totalDocuments));
+});
+
 export const manageAboutPageCMS = asyncHandler(async (req, res) => {
   const cmsId = req.params?.id;
   if (!cmsId) {

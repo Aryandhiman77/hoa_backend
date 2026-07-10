@@ -68,6 +68,7 @@ import {
   unpublishStory,
   archiveStory,
   getDashboardRecordsCount,
+  getContacts,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -124,6 +125,7 @@ import {
   authRateLimiter,
   logoutRateLimiter,
 } from "../middlewares/rateLimits/rateLimits.js";
+import { contactFilters } from "../middlewares/filters/admin/contactFilter.js";
 const adminRouter = Router();
 
 adminRouter.post(
@@ -355,6 +357,15 @@ adminRouter.put(
   validate(nonLegalAdvocateCMSValidation),
   manageNonLegalAdvocateCMS,
 );
+adminRouter.get(
+  "/contacts",
+  pagination,
+  sortingFilters,
+  contactFilters,
+  getContacts,
+);
+
+
 adminRouter.get("/contact-page-cms", getContactPageCMS);
 adminRouter.put(
   "/contact-page-cms/:id",
