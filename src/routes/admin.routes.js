@@ -69,6 +69,7 @@ import {
   archiveStory,
   getDashboardRecordsCount,
   getContacts,
+  editContactStatus,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -126,6 +127,7 @@ import {
   logoutRateLimiter,
 } from "../middlewares/rateLimits/rateLimits.js";
 import { contactFilters } from "../middlewares/filters/admin/contactFilter.js";
+import { editContactStatusValidation } from "../validations/adminValidations/editContactStatusValidation.js";
 const adminRouter = Router();
 
 adminRouter.post(
@@ -365,6 +367,11 @@ adminRouter.get(
   getContacts,
 );
 
+adminRouter.put(
+  "/contact/update-status/:id",
+  validate(editContactStatusValidation),
+  editContactStatus,
+);
 
 adminRouter.get("/contact-page-cms", getContactPageCMS);
 adminRouter.put(

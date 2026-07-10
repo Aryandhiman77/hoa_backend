@@ -1835,6 +1835,33 @@ export const getContacts = asyncHandler(async (req, res) => {
     .json(ApiResponse.paginated(contacts, page + 1, limit, totalDocuments));
 });
 
+export const editContactStatus = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Contact Details not found.",
+      "Contact Details not found",
+      "CONTACT_DETAILS_NOT_FOUND",
+    );
+  }
+  const updated = await Contact.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: req.data?.status,
+    },
+    { returnDocument: "after" },
+  );
+  if (!updated) {
+    throw new NotFoundError(
+      "Contact Details not found.",
+      "Contact Details not found",
+      "CONTACT_DETAILS_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success(`Contact status changed.`, updated));
+});
+
 export const manageAboutPageCMS = asyncHandler(async (req, res) => {
   const cmsId = req.params?.id;
   if (!cmsId) {
