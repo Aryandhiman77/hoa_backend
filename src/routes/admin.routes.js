@@ -67,6 +67,7 @@ import {
   publishStory,
   unpublishStory,
   archiveStory,
+  getDashboardRecordsCount,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -370,6 +371,6 @@ adminRouter.get(
 adminRouter.patch("/notification/:id/read", readNotification);
 adminRouter.delete("/notification/:id", deleteNotification);
 
-adminRouter.get("/records-count",getDashboardRecordsCount);
+adminRouter.get("/records-count", getDashboardRecordsCount);
 
 export default adminRouter;
