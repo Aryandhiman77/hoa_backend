@@ -2090,17 +2090,6 @@ export const getDashboardRecordsCount = asyncHandler(async (req, res) => {
     FAQ.countDocuments().lean(),
     Page.countDocuments().lean(),
   ]);
-  console.log({
-    stories,
-    nonLegalAdvocates,
-    attorneys,
-    contacts,
-    notifications,
-    resources,
-    blogPosts,
-    fAQs,
-    pages,
-  });
   return res.status(200).json(
     ApiResponse.success("Dashboard Counts found.", {
       stories,
