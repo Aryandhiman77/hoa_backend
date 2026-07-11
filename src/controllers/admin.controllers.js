@@ -1786,7 +1786,7 @@ export const getNonLegalAdvocates = asyncHandler(async (req, res) => {
       .sort(sorting)
       .limit(limit)
       .skip(skip)
-      .select("adv_name adv_hoa_name adv_state Status adv_phone")
+      .select("adv_name adv_hoa_name adv_state status adv_phone")
       .lean(),
     NonLegalAdvocate.countDocuments(req.non_legal_advocate_query).lean(),
   ]);
