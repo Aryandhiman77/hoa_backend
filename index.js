@@ -20,7 +20,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
-  "https://hoa-backend-adic.onrender.com",
+  "https://hoanightmares.org",
+  "https://www.hoanightmares.org",
 ];
 
 app.use(
