@@ -1775,6 +1775,61 @@ export const getHomeCMS = asyncHandler(async (req, res, next) => {
   return res.status(200).json(ApiResponse.success("Home CMS found.", cms));
 });
 
+export const getNonLegalAdvocates = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 5;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = { createdAt: -1 };
+
+  const [nonLegalAdvocates, totalDocuments] = await Promise.all([
+    NonLegalAdvocate.find(req.non_legal_advocate_query)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .select("adv_name adv_hoa_name adv_state Status adv_phone")
+      .lean(),
+    NonLegalAdvocate.countDocuments(req.non_legal_advocate_query).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(
+      ApiResponse.paginated(nonLegalAdvocates, page + 1, limit, totalDocuments),
+    );
+});
+
+export const getSingleNonLegalAdvocate = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Non Legal Advocate not found.",
+      "Non Legal Advocate not found.",
+      "NON_LEGAL_DETAILS_NOT_FOUND",
+    );
+  }
+  const nonLegalAdvocate = await NonLegalAdvocate.findById(
+    req.params.id,
+  ).lean();
+  if (!nonLegalAdvocate) {
+    throw new NotFoundError(
+      "Non Legal Advocate not found.",
+      "Non Legal Advocate not found.",
+      "NON_LEGAL_DETAILS_NOT_FOUND",
+    );
+  }
+  return res
+    .status(200)
+    .json(ApiResponse.success(`Non Legal Advocate found.`, nonLegalAdvocate));
+});
+
+export const changeNonLegalAdvocateStatus = asyncHandler((req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Non Legal Advocate not found.",
+      "Non Legal Advocate not found.",
+      "NON_LEGAL_DETAILS_NOT_FOUND",
+    );
+  }
+});
+
 export const getNonLegalAdvocateCMS = asyncHandler(async (req, res, next) => {
   const cms = await NonLegalAdvocateCMS.findOne().lean();
   if (!cms) {

@@ -70,6 +70,9 @@ import {
   getDashboardRecordsCount,
   getContacts,
   editContactStatus,
+  getNonLegalAdvocates,
+  changeNonLegalAdvocateStatus,
+  getSingleNonLegalAdvocate,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -128,6 +131,8 @@ import {
 } from "../middlewares/rateLimits/rateLimits.js";
 import { contactFilters } from "../middlewares/filters/admin/contactFilter.js";
 import { editContactStatusValidation } from "../validations/adminValidations/editContactStatusValidation.js";
+import { nonLegalAdvocateFilters } from "../middlewares/filters/admin/nonLegalAdvocate.js";
+import { nonLegalAdvocateStatusValidation } from "../validations/adminValidations/nonLegalAdvocateStatusValidation.js";
 const adminRouter = Router();
 
 adminRouter.post(
@@ -348,6 +353,22 @@ adminRouter.put(
   validate(aboutPageCMSValidation),
   manageAboutPageCMS,
 );
+adminRouter.get(
+  "/non-legal-advocate",
+  pagination,
+  sortingFilters,
+  nonLegalAdvocateFilters,
+  getNonLegalAdvocates,
+);
+
+adminRouter.get("/non-legal-advocate/:id", getSingleNonLegalAdvocate);
+
+adminRouter.get(
+  "/non-legal-advocate/change-status",
+  validate(nonLegalAdvocateStatusValidation),
+  changeNonLegalAdvocateStatus,
+);
+
 adminRouter.get("/non-legal-advocate-cms", getNonLegalAdvocateCMS);
 adminRouter.put(
   "/non-legal-advocate-cms/:id",
