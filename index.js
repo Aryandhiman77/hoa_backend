@@ -13,6 +13,7 @@ import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import { seedAdmin } from "./src/configs/admin-seeder.js";
+import { cwd } from "process";
 
 config();
 app.use(cookieParser());
@@ -40,14 +41,21 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(path.join(import.meta.dirname, "public")));
+
+const uploadsPath = path.resolve(
+
+  process.env.UPLOAD_PATH || path.join(cwd(), "public", "uploads")
+
+);
+
+app.use("/uploads", express.static(uploadsPath));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
 app.use("/api/public", appRoutes);
-app.use("/admin", adminRouter);
+app.use("/api/admin", adminRouter);
 
 app.use(errorHandler);
 

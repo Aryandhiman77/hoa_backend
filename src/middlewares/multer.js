@@ -6,7 +6,9 @@ import { cwd } from "process";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB for images/docs/videos
 
-const uploadDir = path.join(cwd(), "public", "uploads");
+const uploadDir = path.resolve(
+  process.env.UPLOAD_PATH || path.join(cwd(), "public", "uploads")
+);
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
