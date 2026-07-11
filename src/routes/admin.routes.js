@@ -73,6 +73,7 @@ import {
   getNonLegalAdvocates,
   changeNonLegalAdvocateStatus,
   getSingleNonLegalAdvocate,
+  updateNonLegalAdvocateDetails,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -133,6 +134,7 @@ import { contactFilters } from "../middlewares/filters/admin/contactFilter.js";
 import { editContactStatusValidation } from "../validations/adminValidations/editContactStatusValidation.js";
 import { nonLegalAdvocateFilters } from "../middlewares/filters/admin/nonLegalAdvocate.js";
 import { nonLegalAdvocateStatusValidation } from "../validations/adminValidations/nonLegalAdvocateStatusValidation.js";
+import { nonLegalAdvocateValidationSchema } from "../validations/adminValidations/nonLegalAdvocateValidations.js";
 const adminRouter = Router();
 
 adminRouter.post(
@@ -363,7 +365,12 @@ adminRouter.get(
 
 adminRouter.get("/non-legal-advocate/:id", getSingleNonLegalAdvocate);
 
-adminRouter.get(
+adminRouter.put(
+  "/non-legal-advocate/update-details/:id",
+  validate(nonLegalAdvocateValidationSchema),
+  updateNonLegalAdvocateDetails,
+);
+adminRouter.patch(
   "/non-legal-advocate/change-status/:id",
   validate(nonLegalAdvocateStatusValidation),
   changeNonLegalAdvocateStatus,
