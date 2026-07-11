@@ -54,15 +54,6 @@ export const nonLegalAdvocateValidationSchema = Joi.object({
     .allow(null, "")
     .label("Key Dates"),
 
-  adv_disclaimer: Joi.boolean()
-    .valid(true)
-    .required()
-    .label("Disclaimer")
-    .messages({
-      "any.only": "You must accept the disclaimer.",
-      "any.required": "Disclaimer acceptance is required.",
-    }),
-
   status: Joi.string()
     .valid(
       "new",
