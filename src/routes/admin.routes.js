@@ -364,7 +364,7 @@ adminRouter.get(
 adminRouter.get("/non-legal-advocate/:id", getSingleNonLegalAdvocate);
 
 adminRouter.get(
-  "/non-legal-advocate/change-status",
+  "/non-legal-advocate/change-status/:id",
   validate(nonLegalAdvocateStatusValidation),
   changeNonLegalAdvocateStatus,
 );

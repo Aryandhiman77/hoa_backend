@@ -1820,7 +1820,7 @@ export const getSingleNonLegalAdvocate = asyncHandler(async (req, res) => {
     .json(ApiResponse.success(`Non Legal Advocate found.`, nonLegalAdvocate));
 });
 
-export const changeNonLegalAdvocateStatus = asyncHandler((req, res) => {
+export const changeNonLegalAdvocateStatus = asyncHandler(async(req, res) => {
   if (!req.params?.id) {
     throw new NotFoundError(
       "Non Legal Advocate not found.",
@@ -1828,6 +1828,20 @@ export const changeNonLegalAdvocateStatus = asyncHandler((req, res) => {
       "NON_LEGAL_DETAILS_NOT_FOUND",
     );
   }
+  const saved = await NonLegalAdvocate.findByIdAndUpdate(req.params.id,{
+    status:req.data?.status
+  })
+   if (!saved) {
+      throw new BadRequestError(
+        "Failed to save changes, please try again.",
+        "Failed to save changes, please try again.",
+        "FAILED_TO_SAVE_CHANGES",
+      );
+    }
+    return res
+      .status(200)
+      .json(ApiResponse.success("Non Legal Advocate updated successfully.", saved));
+
 });
 
 export const getNonLegalAdvocateCMS = asyncHandler(async (req, res, next) => {
