@@ -42,7 +42,7 @@ const pageSchema = new mongoose.Schema(
     },
     publish_status: {
       type: String,
-      enum: ["draft", "review", "published", "archieved", "unpublish"],
+      enum: ["draft", "review", "published", "archived", "unpublish"],
       default: "draft",
     },
   },

@@ -8,7 +8,7 @@ export const nonLegalAdvocateStatusValidation = Joi.object({
       "needs_follow_up",
       "flagged",
       "closed",
-      "archieved",
+      "archived",
     )
     .required()
     .label("Status")

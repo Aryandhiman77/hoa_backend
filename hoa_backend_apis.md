@@ -799,11 +799,11 @@ Path params:
 
 Behavior:
 
-- Sets `status = archieved`
+- Sets `status = archived`
 
 Note:
 
-- The route and status currently use the spelling `archieve` / `archieved`.
+- The route and status currently use the spelling `archieve` / `archived`.
 
 ## Create Blog
 

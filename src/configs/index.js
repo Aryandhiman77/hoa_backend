@@ -14,6 +14,6 @@ if (Object.values(ACCESS_TOKEN).length === 0) {
 }
 
 export const appConfig = {
-  max_story_uploads_length: 10,
+  max_story_uploads_length: 50,
   IS_OTP_VERIFICATION_ENABLED: false,
 };

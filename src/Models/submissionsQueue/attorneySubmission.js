@@ -92,7 +92,7 @@ const attorneySubmissionSchema = new mongoose.Schema(
         "under_review",
         "approved",
         "published",
-        "archieved",
+        "archived",
         "declined",
         "unpublished",
       ],

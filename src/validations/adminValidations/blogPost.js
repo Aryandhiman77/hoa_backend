@@ -41,7 +41,7 @@ export const createblogValidationSchema = Joi.object({
     .label("Status")
     .messages({
       "any.only":
-        "Status must be one of draft, review, published, unpublished, archieved.",
+        "Status must be one of draft, review, published, unpublished, archived.",
     }),
 
   seo_title: Joi.string().trim().optional().allow(null, "").label("SEO Title"),

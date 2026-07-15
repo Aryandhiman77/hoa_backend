@@ -61,12 +61,12 @@ export const nonLegalAdvocateValidationSchema = Joi.object({
       "needs_follow_up",
       "flagged",
       "closed",
-      "archieved",
+      "archived",
     )
     .default("new")
     .label("Status")
     .messages({
       "any.only":
-        "Status must be one of new, under_review, needs_follow_up, flagged, closed, or archieved.",
+        "Status must be one of new, under_review, needs_follow_up, flagged, closed, or archived.",
     }),
 });

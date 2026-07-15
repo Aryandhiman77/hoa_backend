@@ -776,7 +776,7 @@ export const archieveAttorney = asyncHandler(async (req, res) => {
   const attorney = await Attorney.findByIdAndUpdate(
     req.params.id,
     {
-      status: "archieved",
+      status: "archived",
     },
     { returnDocument: "after" },
   );
@@ -795,9 +795,7 @@ export const archieveAttorney = asyncHandler(async (req, res) => {
       "FAILED_TO_ARCHIEVE_ATTORNEY",
     );
   }
-  return res
-    .status(200)
-    .json(ApiResponse.success("Attorney archieved.", saved));
+  return res.status(200).json(ApiResponse.success("Attorney archived.", saved));
 });
 
 export const createFaq = asyncHandler(async (req, res) => {

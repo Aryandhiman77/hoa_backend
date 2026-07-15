@@ -99,7 +99,7 @@ const nonLegalAdvocateSchema = new mongoose.Schema(
         "needs_follow_up",
         "flagged",
         "closed",
-        "archieved",
+        "archived",
       ],
       default: "new",
     },

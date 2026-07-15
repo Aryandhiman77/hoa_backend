@@ -26,7 +26,7 @@ const blogSchema = new mongoose.Schema(
     featured_image: { type: String, trim: true, default: null },
     status: {
       type: String,
-      enum: ["draft", "review", "published", "archieved", "unpublish"],
+      enum: ["draft", "review", "published", "archived", "unpublish"],
       default: "draft",
     },
     seo_title: { type: String, trim: true, default: null },

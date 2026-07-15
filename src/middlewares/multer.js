@@ -49,14 +49,10 @@ function customFileFilter(req, file, cb) {
     // Documents
     "application/pdf",
     "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
     // Videos
     "video/mp4",
     "video/mpeg",
-    "video/quicktime",
-    "video/x-msvideo",
-    "video/webm",
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
