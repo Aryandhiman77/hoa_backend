@@ -47,14 +47,14 @@ appRoutes
     validate(createStoryValidation),
     createStory,
   )
+  .get("/hoa-horror-stories/:slug", getStoryBySlug)
   .get(
     "/hoa-horror-stories",
     pagination,
     sortingFilters,
     storyFilters,
     getStoryByFilters,
-  )
-  .get("/hoa-horror-stories/:slug",getStoryBySlug); //✅
+  );
 
 //needs testing
 appRoutes.post(

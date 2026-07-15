@@ -287,7 +287,10 @@ export const getStoryBySlug = AsyncHandler(async (req, res) => {
       "STORY_NOT_FOUND",
     );
   }
-  const story = await Story.find({ slug: req.params.slug })
+  const story = await Story.findOne({
+    story_slug: req.params.slug,
+    isPublished: true,
+  })
     .select(
       "-_id -updatedAt -flagReason -adminNotes -isApproved -isPublished -status -story_disclaimer -story_consent",
     )
