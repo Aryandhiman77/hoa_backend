@@ -52,7 +52,8 @@ appRoutes
     sortingFilters,
     storyFilters,
     getStoryByFilters,
-  ); //✅
+  )
+  .get("/hoa-horror-stories/:slug",getStoryBySlug); //✅
 
 //needs testing
 appRoutes.post(

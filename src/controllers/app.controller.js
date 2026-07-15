@@ -279,6 +279,34 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
     .json(ApiResponse.paginated(stories, page + 1, limit, totalDocuments));
 });
 
+export const getStoryBySlug = AsyncHandler(async (req, res) => {
+  if (!req.params?.slug) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found.",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const story = await Story.find({ slug: req.params.slug })
+    .select(
+      "-_id -updatedAt -flagReason -adminNotes -isApproved -isPublished -status -story_disclaimer -story_consent",
+    )
+    .lean();
+  if (!story) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found.",
+      "STORY_NOT_FOUND",
+    );
+  }
+  if (story.story_anonymous) {
+    delete story["story_name"];
+    delete story["story_email"];
+    delete story["story_phone"];
+  }
+  return res.status(200).json(ApiResponse.success("Story found.", story));
+});
+
 export const getBlogListing = AsyncHandler(async (req, res) => {
   const limit = req.pagination_query?.limit || 10;
   const skip = req.pagination_query?.skip || 0;
