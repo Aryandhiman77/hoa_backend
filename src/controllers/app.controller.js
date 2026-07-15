@@ -267,7 +267,7 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
       .limit(limit)
       .skip(skip)
       .select(
-        "-_id story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status",
+        "-_id story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status story_slug",
       )
       .lean(),
 
