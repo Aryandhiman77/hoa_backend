@@ -20,6 +20,7 @@ import {
   getAboutPageContent,
   getNonLegalAdvocatePageContent,
   getContactPageContent,
+  getStoryBySlug,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
