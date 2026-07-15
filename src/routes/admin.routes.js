@@ -74,6 +74,7 @@ import {
   changeNonLegalAdvocateStatus,
   getSingleNonLegalAdvocate,
   updateNonLegalAdvocateDetails,
+  getSingleContact,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -394,6 +395,8 @@ adminRouter.get(
   contactFilters,
   getContacts,
 );
+
+adminRouter.get("/contact/:id", getSingleContact);
 
 adminRouter.patch(
   "/contact/update-status/:id",

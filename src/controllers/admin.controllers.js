@@ -1939,6 +1939,25 @@ export const getContacts = asyncHandler(async (req, res) => {
     .json(ApiResponse.paginated(contacts, page + 1, limit, totalDocuments));
 });
 
+export const getSingleContact = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Contact Details not found.",
+      "Contact Details not found",
+      "CONTACT_DETAILS_NOT_FOUND",
+    );
+  }
+  const contact = await Contact.findById(req.params.id).lean();
+  if (!contact) {
+    throw new NotFoundError(
+      "Contact Details not found.",
+      "Contact Details not found",
+      "CONTACT_DETAILS_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success(`Contact found.`, contact));
+});
+
 export const editContactStatus = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
     throw new NotFoundError(

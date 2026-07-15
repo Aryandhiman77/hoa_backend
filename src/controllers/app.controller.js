@@ -261,18 +261,29 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
   const skip = req.pagination_query?.skip || 0;
   const page = req.pagination_query?.page || 0;
   const sorting = req.sorting_query || { createdAt: -1 };
-  const [stories, totalDocuments] = await Promise.all([
+  let [stories, totalDocuments] = await Promise.all([
     Story.find(req.story_query)
       .sort(sorting)
       .limit(limit)
       .skip(skip)
       .select(
-        "-_id story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status story_slug",
+        "-_id story_name story_email story_city story_state story_hoa_name story_issue_type story_summary story_anonymous status story_slug",
       )
       .lean(),
 
     Story.countDocuments(req.story_query),
   ]);
+
+  stories = stories?.map((item) => {
+    if (item.story_anonymous) {
+      delete item["story_name"];
+      delete item["story_email"];
+      delete item["story_phone"];
+      return item;
+    } else {
+      return item;
+    }
+  });
 
   return res
     .status(200)
@@ -290,6 +301,7 @@ export const getStoryBySlug = AsyncHandler(async (req, res) => {
   const story = await Story.findOne({
     story_slug: req.params.slug,
     isPublished: true,
+    status: "published",
   })
     .select(
       "-_id -updatedAt -flagReason -adminNotes -isApproved -isPublished -status -story_disclaimer -story_consent",
