@@ -41,7 +41,7 @@ export const nonLegalAdvocateValidationSchema = Joi.object({
       "string.empty": "Issue summary is required.",
       "any.required": "Issue summary is required.",
     }),
-
+    
   adv_estimated_damages: Joi.string()
     .trim()
     .optional()

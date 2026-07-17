@@ -599,8 +599,6 @@ export const getSingleAttorney = asyncHandler(async (req, res) => {
       "ATTORNEY_NOT_FOUND",
     );
   }
-  attorney.status = "under_review";
-  attorney.reviewedAt = Date.now();
 
   const saved = await attorney.save();
   if (!saved) {
