@@ -238,7 +238,7 @@ export const getHomeOwnerAttorneysByFilters = AsyncHandler(async (req, res) => {
   const skip = req.pagination_query?.skip || 0;
   const page = req.pagination_query?.page || 0;
   const sorting = req.sorting_query || { createdAt: -1 };
-
+  console.log(req.hoa_query);
   const [attorneys, totalDocuments] = await Promise.all([
     Attorney.find(req.hoa_query)
       .sort(sorting)
