@@ -75,6 +75,7 @@ import {
   getSingleNonLegalAdvocate,
   updateNonLegalAdvocateDetails,
   getSingleContact,
+  getSingleResource,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -291,6 +292,7 @@ adminRouter.post(
   validate(createResourceValidationSchema),
   createResource,
 );
+adminRouter.get("/resource/:id", getSingleResource);
 adminRouter.get(
   "/resources",
   pagination,

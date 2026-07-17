@@ -1341,6 +1341,25 @@ export const createResource = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const getSingleResource = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "Resource not found.",
+      "Resource not found",
+      "RESOURCE_NOT_FOUND",
+    );
+  }
+  const resource = await Resource.findById(req.params.id);
+  if (!resource) {
+    throw new NotFoundError(
+      "Resource not found.",
+      "Resource not found",
+      "RESOURCE_NOT_FOUND",
+    );
+  }
+  return res.status(200).json(ApiResponse.success("Resource found.", resource));
+});
+
 export const getResources = asyncHandler(async (req, res, next) => {
   const limit = req.pagination_query?.limit || 10;
   const skip = req.pagination_query?.skip || 0;
