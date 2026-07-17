@@ -38,18 +38,21 @@ const attorneySubmissionSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
     },
 
     attorney_state: {
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
     },
 
     attorney_county: {
       type: String,
       trim: true,
       default: null,
+      lowercase: true,
     },
 
     attorney_practice_areas: {
@@ -67,12 +70,14 @@ const attorneySubmissionSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
     },
 
     attorney_bio: {
       type: String,
       trim: true,
       default: null,
+      lowercase: true,
     },
 
     attorney_disclaimer_ack: {
