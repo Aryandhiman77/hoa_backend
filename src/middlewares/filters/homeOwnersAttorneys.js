@@ -1,5 +1,6 @@
 const homeOwnerAttorneysFilters = (req, _, next) => {
   const { state, city, county, practice_area, keyword } = req.query;
+  console.log(state, city, county, practice_area, keyword);
   let query = { status: "published", isPublished: true };
   if (state) {
     query.attorney_state = state.toLowerCase();
