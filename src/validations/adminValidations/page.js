@@ -22,7 +22,7 @@ export const createPageValidation = Joi.object({
     "string.empty": "Page title is required.",
     "any.required": "Page title is required.",
   }),
-
+  slug: Joi.string().trim().label("Slug"),
   hero_title: Joi.string().trim().required().label("Hero Title").messages({
     "string.empty": "Hero title is required.",
     "any.required": "Hero title is required.",
