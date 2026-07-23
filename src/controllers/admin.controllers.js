@@ -551,11 +551,8 @@ export const removeMediaFromStory = asyncHandler(async (req, res, next) => {
   const failedIndexes = await unlinkFilesFromServerUsingPath(fileUrls);
 
   if (failedIndexes.length) {
-    return next(
-      new BadRequestError(
-        `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
-        "SOME_FILES_NOT_DELETED",
-      ),
+    console.log(
+      `Failed to delete files at indexes: ${failedIndexes.join(", ")} for ${req.user._id}`,
     );
   }
 
@@ -963,11 +960,8 @@ export const updateBlogDetails = asyncHandler(async (req, res, next) => {
         previousBlog?.featured_image,
       ]);
       if (failedIndexes.length) {
-        return next(
-          new BadRequestError(
-            `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
-            "SOME_FILES_NOT_DELETED",
-          ),
+        console.log(
+          `Failed to delete files at indexes: ${failedIndexes.join(", ")} for ${req.user._id}`,
         );
       }
       // adding new file
@@ -1046,11 +1040,8 @@ export const deleteBlog = asyncHandler(async (req, res, next) => {
     deleted.featured_image,
   ]);
   if (failedIndexes.length) {
-    return next(
-      new BadRequestError(
-        `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
-        "SOME_FILES_NOT_DELETED",
-      ),
+    console.log(
+      `Failed to delete files at indexes: ${failedIndexes.join(", ")} for ${req.user._id}`,
     );
   }
 
@@ -1109,11 +1100,8 @@ export const updatePage = asyncHandler(async (req, res, next) => {
       ]);
 
       if (failedIndexes.length) {
-        return next(
-          new BadRequestError(
-            `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
-            "SOME_FILES_NOT_DELETED",
-          ),
+        console.log(
+          `Failed to delete files at indexes: ${failedIndexes.join(", ")} for ${req.user._id}`,
         );
       }
       // adding new file
@@ -1157,17 +1145,7 @@ export const deletePage = asyncHandler(async (req, res, next) => {
       "FAILED_TO_DELETE_PAGE",
     );
   }
-  const failedIndexes = await unlinkFilesFromServerUsingPath([
-    deleted.featured_image,
-  ]);
-  if (failedIndexes.length) {
-    return next(
-      new BadRequestError(
-        `Failed to delete files at indexes: ${failedIndexes.join(", ")}`,
-        "SOME_FILES_NOT_DELETED",
-      ),
-    );
-  }
+  await unlinkFilesFromServerUsingPath([deleted.featured_image]);
 
   return res
     .status(201)
