@@ -17,7 +17,7 @@ const storySubmitted = (name = "there") => {
 
                 <tr>
                   <td align="center" style="padding:30px 25px 15px;">
-                    <img src=${process.env.APP_URL + "hoa-logo.png"} alt="Website Logo" style="max-width:150px; height:auto;" />
+                    <img src=${process.env.APP_URL + "/hoa_logo.png"} alt="HOA Logo" style="max-width:150px; height:auto;" />
                   </td>
                 </tr>
 
