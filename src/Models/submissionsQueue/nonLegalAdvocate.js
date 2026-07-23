@@ -57,6 +57,16 @@ const nonLegalAdvocateSchema = new mongoose.Schema(
       default: null,
     },
 
+    adv_issue_types: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: function (value) {
+          return Array.isArray(value) && value.length > 0;
+        },
+        message: "Please select at least one issue type",
+      },
+    },
     adv_issue_summary: {
       type: String,
       required: true,
@@ -90,7 +100,12 @@ const nonLegalAdvocateSchema = new mongoose.Schema(
         message: "Disclaimer is required",
       },
     },
-
+    adv_best_time_to_call: {
+      type: String,
+      enum: ["morning", "afternoon", "evening", "night"],
+      required: true,
+      default: "morning",
+    },
     status: {
       type: String,
       enum: [

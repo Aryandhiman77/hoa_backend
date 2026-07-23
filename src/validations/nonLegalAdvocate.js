@@ -39,6 +39,24 @@ export const createNonLegalAdvocateValidation = Joi.object({
     .allow("", null)
     .optional(),
 
+  adv_issue_types: Joi.array()
+    .label("Issue Type")
+    .items(Joi.string().trim())
+    .min(1)
+    .required()
+    .messages({
+      "array.min": "Please select at least one issue type",
+      "any.required": "Issue type is required",
+    }),
+
+  adv_best_time_to_call: Joi.valid("morning", "afternoon", "evening", "night")
+    .label("Best time to call")
+    .required()
+    .messages({
+      "any.only":
+        "Best time to call must be one of morning, afternoon, evening or night.",
+      "any.required": "Best time to call is required.",
+    }),
   adv_issue_summary: Joi.string()
     .label("Issue Summary")
     .trim()

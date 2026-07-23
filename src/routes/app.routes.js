@@ -59,7 +59,7 @@ appRoutes
 //needs testing
 appRoutes.post(
   "/non-legal-advocate/create",
-  uploadMultiple.array("uploads", appConfig.max_story_uploads_length),
+  uploadMultiple.array("adv_uploads", appConfig.max_story_uploads_length),
   validate(createNonLegalAdvocateValidation),
   createNonLegalAdvocate,
 );
