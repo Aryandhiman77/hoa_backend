@@ -58,7 +58,7 @@ const nonLegalAdvocateSchema = new mongoose.Schema(
     },
 
     adv_issue_types: {
-      type: [String],
+      type: [{ type: String, lowercase: true }],
       required: true,
       validate: {
         validator: function (value) {

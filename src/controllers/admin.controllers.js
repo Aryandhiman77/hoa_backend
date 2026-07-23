@@ -230,7 +230,7 @@ export const getStoriesByQuery = asyncHandler(async (req, res) => {
       .limit(limit)
       .skip(skip)
       .select(
-        "story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous isPublished status",
+        "story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous isPublished status createdAt updatedAt",
       )
       .lean(),
     Story.countDocuments(req.story_query).lean(),
@@ -1366,7 +1366,7 @@ export const getResources = asyncHandler(async (req, res, next) => {
 
   const [resources, totalDocuments] = await Promise.all([
     Resource.find(req.resource_filters)
-      .select("title slug category featured_image status")
+      .select("title slug category featured_image status createdAt updatedAt")
       .sort(sorting)
       .limit(limit)
       .skip(skip)
@@ -1801,7 +1801,7 @@ export const getNonLegalAdvocates = asyncHandler(async (req, res) => {
       .sort(sorting)
       .limit(limit)
       .skip(skip)
-      .select("adv_name adv_hoa_name adv_state status adv_phone")
+      .select("adv_name adv_hoa_name adv_state status adv_phone createdAt")
       .lean(),
     NonLegalAdvocate.countDocuments(req.non_legal_advocate_query).lean(),
   ]);

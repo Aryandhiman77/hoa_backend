@@ -76,7 +76,7 @@ const storySchema = new mongoose.Schema(
     },
 
     story_issue_type: {
-      type: [String],
+      type: [{ type: String, lowercase: true }],
       required: true,
       validate: {
         validator: function (value) {
