@@ -67,7 +67,7 @@ export function generateAdminOtpEmail({ otp, adminName }) {
   <body>
     <div class="email-wrapper">
       <div class="header">
-        <img src=${process.env.APP_URL + "/hoa_logo.png"}  alt="HOA Nightmares Logo">
+        <img src=${process.env.APP_URL + "/hoa_logo.webp"}  alt="HOA Nightmares Logo">
       </div>
       <div class="body">
         <h1>Admin OTP Verification</h1>
