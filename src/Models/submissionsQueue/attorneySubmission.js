@@ -56,7 +56,7 @@ const attorneySubmissionSchema = new mongoose.Schema(
     },
 
     attorney_practice_areas: {
-      type: [String],
+      type: [{ type: String, lowercase: true }],
       required: true,
       validate: {
         validator: function (value) {
