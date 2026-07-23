@@ -144,7 +144,7 @@ const uploadNonLegalAdvocateFiles = (files) => {
 
       return {
         fileName: file.originalname,
-        fileUrl: `/temp/${file.filename}`,
+        fileUrl: `/uploads/${file.filename}`,
         fileType,
         fileSize: file.size,
       };
