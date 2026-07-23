@@ -60,6 +60,7 @@ appRoutes
 appRoutes.post(
   "/non-legal-advocate/create",
   uploadMultiple.array("adv_uploads", appConfig.max_story_uploads_length),
+  jsonParser(["adv_issue_types"]),
   validate(createNonLegalAdvocateValidation),
   createNonLegalAdvocate,
 );
