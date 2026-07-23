@@ -110,7 +110,7 @@ export default function (name) {
   <body>
     <div class="success-wrapper">
       <div class="logo-box">
-        <img src=${process.env.APP_URL + "/hoa_logo.webp"} alt="Website Logo" />
+        <img src=${process.env.APP_URL + "/hoa_logo.png"} alt="Website Logo" />
       </div>
 
       <div class="success-icon">✓</div>
