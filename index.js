@@ -12,6 +12,7 @@ import { config } from "dotenv";
 import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
+import { seedAdmin } from "./src/configs/admin-seeder.js";
 
 config();
 app.use(cookieParser());
@@ -50,8 +51,9 @@ app.use("/admin", adminRouter);
 
 app.use(errorHandler);
 
-connectDB().then(() => {
-  app.listen(process.env.PORT, () => {
+connectDB().then(async () => {
+  await seedAdmin();
+  app.listen(process.env.PORT, async () => {
     console.log(`HOA running on ${APP_URL}`);
   });
 });
