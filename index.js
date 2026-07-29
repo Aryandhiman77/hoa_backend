@@ -16,6 +16,7 @@ import { seedAdmin } from "./src/configs/admin-seeder.js";
 import { cwd } from "process";
 
 config();
+app.set("trust proxy", true);
 app.use(cookieParser());
 app.use(helmet());
 const allowedOrigins = [
@@ -42,9 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const uploadsPath = path.resolve(
-
-  process.env.UPLOAD_PATH || path.join(cwd(), "public", "uploads")
-
+  process.env.UPLOAD_PATH || path.join(cwd(), "public", "uploads"),
 );
 
 app.use("/uploads", express.static(uploadsPath));
