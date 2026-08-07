@@ -11,7 +11,9 @@ const homeOwnerAttorneysFilters = (req, _, next) => {
     query.attorney_county = county.toLowerCase();
   }
   if (practice_area) {
-    query.attorney_practice_areas = practice_area.toLowerCase();
+    query.attorney_practice_areas = {
+      $in: [practice_area],
+    };
   }
   if (keyword) {
     query.$or = [
