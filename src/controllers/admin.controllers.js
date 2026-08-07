@@ -2128,7 +2128,7 @@ export const getNotifications = asyncHandler(async (req, res) => {
       .skip(skip)
       .select("title description createdAt isRead type relatedModule relatedId")
       .lean(),
-    Story.countDocuments(req.notifications_query).lean(),
+    Notification.countDocuments(req.notifications_query).lean(),
   ]);
   return res
     .status(201)
