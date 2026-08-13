@@ -87,7 +87,7 @@ appRoutes.get(
   blogSearchFilter,
   getBlogListing,
 );
-appRoutes.get("/blog/:id", getSingleBlog);
+appRoutes.get("/blog/:slug", getSingleBlog);
 
 appRoutes.get("/faqs", faqFilters, getFaqs);
 
