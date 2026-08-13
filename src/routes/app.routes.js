@@ -80,6 +80,7 @@ appRoutes //✅
     getHomeOwnerAttorneysByFilters,
   );
 
+appRoutes.get("/blog/:slug", getSingleBlog);
 appRoutes.get(
   "/blogs",
   pagination,
@@ -87,7 +88,6 @@ appRoutes.get(
   blogSearchFilter,
   getBlogListing,
 );
-appRoutes.get("/blog/:slug", getSingleBlog);
 
 appRoutes.get("/faqs", faqFilters, getFaqs);
 
