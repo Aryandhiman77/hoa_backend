@@ -354,9 +354,10 @@ export const getSingleBlog = AsyncHandler(async (req, res) => {
       "BLOG_NOT_FOUND",
     );
   }
-  const blog = await BlogPost.findOne({ slug: slug?.toLowerCase() }).select(
+  const blog = await BlogPost.findOne({ slug: req.params.slug }).select(
     "-_id -__v -createdAt",
   );
+  console.log(blog);
   if (!blog) {
     throw new NotFoundError(
       "Blog not found.",
