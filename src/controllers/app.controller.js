@@ -346,6 +346,7 @@ export const getBlogListing = AsyncHandler(async (req, res) => {
 });
 
 export const getSingleBlog = AsyncHandler(async (req, res) => {
+  console.log("calling single blog api", req.params.slug);
   if (!req.params?.slug) {
     throw new NotFoundError(
       "Blog not found.",
