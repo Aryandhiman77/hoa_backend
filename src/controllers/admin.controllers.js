@@ -256,8 +256,6 @@ export const getStoryDetails = asyncHandler(async (req, res) => {
       "STORY_NOT_FOUND",
     );
   }
-  details.status = "under_review";
-  details.reviewedAt = Date.now(); // save admin review date and time
 
   const saved = await details.save();
   if (!saved) {
@@ -838,7 +836,7 @@ export const getFaqs = asyncHandler(async (req, res) => {
   const limit = req.pagination_query?.limit || 10;
   const skip = req.pagination_query?.skip || 0;
   const page = req.pagination_query?.page || 0;
-  const sorting = req.sorting_query || { sortOrder: 1, createdAt: -1 };
+  const sorting = { sortOrder: 1 };
 
   const [FAQs, totalDocuments] = await Promise.all([
     FAQ.find(req.faq_query).sort(sorting).limit(limit).skip(skip).lean(),
