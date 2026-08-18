@@ -120,7 +120,8 @@ export const createStory = AsyncHandler(async (req, res, next) => {
     return res.status(201).json(ApiResponse.created("Story submitted.", saved));
   } catch (error) {
     if (error?.message?.includes("story_slug")) {
-      error.message = "title must be unique.";
+      error.message =
+        "Story HOA name already exists, please enter different HOA name.";
     }
     if (req.files) {
       unlinkFiles(req.files);
