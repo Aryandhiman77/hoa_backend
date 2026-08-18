@@ -28,7 +28,7 @@ const removalRequest = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["new", "rejected", "approved"],
+      enum: ["new", "rejected", "completed"],
       default: "new",
       index: true,
     },

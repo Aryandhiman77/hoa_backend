@@ -79,6 +79,7 @@ import {
   getStoryByCaseId,
   getRemovalRequests,
   removeStory,
+  rejectStoryRemovalRequest,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -187,6 +188,7 @@ adminRouter
     getRemovalRequests,
   )
   .get("/story/:caseId", getStoryByCaseId)
+  .patch("/story/reject-removal/:caseId", rejectStoryRemovalRequest)
   .patch("/story/remove/:caseId", removeStory);
 
 // attorneys listing (tested and working properly)

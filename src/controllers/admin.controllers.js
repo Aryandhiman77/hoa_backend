@@ -36,6 +36,7 @@ import storyRemoved from "../html/storyRemoved.js";
 import storyPublished from "../middlewares/filters/storyPublished.js";
 import storyUnpublished from "../html/storyUnpublished.js";
 import storyUpdated from "../html/storyUpdated.js";
+import storyRemovalRequestRejected from "../html/removalRequestRejected.js";
 
 export const getAdminLogin = asyncHandler(async (req, res) => {
   const email = req.body?.email;
@@ -423,7 +424,7 @@ export const removeStory = asyncHandler(async (req, res) => {
       },
     },
     {
-      new: true,
+      returnDocument: "after",
     },
   );
   console.log(updated);
@@ -434,6 +435,29 @@ export const removeStory = asyncHandler(async (req, res) => {
       "STORY_NOT_FOUND",
     );
   }
+
+  const removalRequest = await RemovalRequest.findOneAndUpdate(
+    {
+      caseId: caseId.toUpperCase(),
+      status: { $in: ["new"] },
+    },
+    {
+      $set: {
+        status: "completed",
+        removedAt: new Date(),
+      },
+    },
+    {
+      returnDocument: "after",
+    },
+  );
+
+  if (!removalRequest) {
+    console.warn(
+      `Story ${caseId.toUpperCase()} removed, but no active removal request was found.`,
+    );
+  }
+
   await mailSender({
     to: updated.story_email,
     from: process.env.SUPPORT_MAIL,
@@ -445,8 +469,67 @@ export const removeStory = asyncHandler(async (req, res) => {
     ),
   });
 
-  return res.status(200).json(ApiResponse.success("Story removed.", updated));
+  return res
+    .status(200)
+    .json(ApiResponse.success("Story removed.", removalRequest));
 });
+
+export const rejectStoryRemovalRequest = asyncHandler(async (req, res) => {
+  const { caseId } = req.params;
+  if (!caseId) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+
+  const removalRequest = await RemovalRequest.findOneAndUpdate(
+    {
+      caseId: caseId.toUpperCase(),
+      status: { $in: ["new"] },
+    },
+    {
+      $set: {
+        status: "rejected",
+        rejectionReason:
+          req.body.rejectionReason.trim() ||
+          "No reason specified by administration.",
+      },
+    },
+    {
+      returnDocument: "after",
+    },
+  );
+  console.log(
+    req.body.rejectionReason || "No reason specified by administration.",
+  );
+  if (!removalRequest) {
+    throw new NotFoundError(
+      `Story ${caseId.toUpperCase()} removed, but no active removal request was found.`,
+      "Active Removal request not found",
+      "ACTIVE_REMOVAL_REQUEST_NOT_FOUND",
+    );
+  }
+  await mailSender({
+    to: removalRequest.email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Story removal request rejection.",
+    html: storyRemovalRequestRejected(
+      removalRequest.name,
+      removalRequest.caseId,
+      req.body.rejectionReason.trim() ||
+        "No reason specified by administration.",
+    ),
+  });
+
+  return res
+    .status(200)
+    .json(
+      ApiResponse.success("Story removal request rejected.", removalRequest),
+    );
+});
+
 export const approveStory = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
     throw new NotFoundError(
