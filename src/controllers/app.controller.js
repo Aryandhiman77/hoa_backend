@@ -312,7 +312,7 @@ export const requestForRemoval = AsyncHandler(async (req, res) => {
     caseId: req.data.caseId,
     story_email: req.data.email,
   })
-    .select("_id")
+    .select("_id status")
     .lean();
   if (!story || story.status === "removed") {
     throw new NotFoundError(
