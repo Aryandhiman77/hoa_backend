@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { customAlphabet } from "nanoid";
 import slugify from "slugify";
 
 const storyUploadSchema = new mongoose.Schema(
@@ -29,6 +30,13 @@ const storyUploadSchema = new mongoose.Schema(
 
 const storySchema = new mongoose.Schema(
   {
+    caseId: {
+      type: String,
+      default: () =>
+        `STORY-${customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 15)()}`,
+      unique: true,
+      index: true,
+    },
     story_name: {
       type: String,
       required: true,
@@ -142,6 +150,7 @@ const storySchema = new mongoose.Schema(
         "published",
         "unpublished",
         "archived",
+        "removed",
       ],
       default: "new",
     },

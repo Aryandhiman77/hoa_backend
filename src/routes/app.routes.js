@@ -21,6 +21,7 @@ import {
   getNonLegalAdvocatePageContent,
   getContactPageContent,
   getStoryBySlug,
+  requestForRemoval,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -35,6 +36,7 @@ import { appConfig } from "../configs/index.js";
 import { blogSearchFilter } from "../middlewares/filters/blogSearchFilter.js";
 import faqFilters from "../middlewares/filters/faqFilters.js";
 import { resourceFilters } from "../middlewares/filters/resourceFilters.js";
+import removalRequestValidation from "../validations/removalRequestValidations.js";
 const appRoutes = express.Router();
 
 appRoutes.post("/contact-form", validate(contactSchema), saveContactForm); //✅
@@ -55,6 +57,12 @@ appRoutes
     storyFilters,
     getStoryByFilters,
   );
+
+appRoutes.post(
+  "/removal-request",
+  validate(removalRequestValidation),
+  requestForRemoval,
+);
 
 //needs testing
 appRoutes.post(

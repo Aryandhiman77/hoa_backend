@@ -1,11 +1,11 @@
-const storySubmitted = (name = "there", caseId = "") => {
+const storyRemovalRequestSubmitted = (name = "there", caseId = "") => {
   return `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Story Submitted Successfully</title>
+        <title>Story Removal Request Submitted</title>
       </head>
 
       <body style="margin:0; padding:0; background:#f4f8fb; font-family:Arial, sans-serif;">
@@ -31,22 +31,22 @@ const storySubmitted = (name = "there", caseId = "") => {
                   </td>
                 </tr>
 
-                <!-- Success Icon -->
+                <!-- Request Icon -->
                 <tr>
                   <td align="center" style="padding:10px 25px 0;">
                     <div
                       style="
                         width:70px;
                         height:70px;
-                        background:#e8f8ef;
+                        background:#fff7ed;
                         border-radius:50%;
                         line-height:70px;
-                        color:#1faa59;
-                        font-size:38px;
+                        color:#ea580c;
+                        font-size:36px;
                         font-weight:bold;
                       "
                     >
-                      ✓
+                      !
                     </div>
                   </td>
                 </tr>
@@ -62,7 +62,7 @@ const storySubmitted = (name = "there", caseId = "") => {
                         line-height:1.3;
                       "
                     >
-                      Story Submitted Successfully
+                      Removal Request Submitted
                     </h1>
                   </td>
                 </tr>
@@ -90,8 +90,8 @@ const storySubmitted = (name = "there", caseId = "") => {
                         line-height:1.7;
                       "
                     >
-                      Thank you for submitting your story. We have received
-                      your submission successfully.
+                      We have received your request to remove your submitted
+                      story from our website.
                     </p>
 
                     <p
@@ -102,9 +102,10 @@ const storySubmitted = (name = "there", caseId = "") => {
                         line-height:1.7;
                       "
                     >
-                      Our team will review your submission before it is
-                      published. If we need any additional details, we will
-                      contact you using the email address you provided.
+                      Our team will review your request and verify the
+                      submitted information before taking any action.
+                      We will contact you if we require any additional
+                      information.
                     </p>
 
                   </td>
@@ -135,7 +136,7 @@ const storySubmitted = (name = "there", caseId = "") => {
                           letter-spacing:0.5px;
                         "
                       >
-                        Your Story Case ID
+                        Story Case ID
                       </p>
 
                       <p
@@ -159,9 +160,8 @@ const storySubmitted = (name = "there", caseId = "") => {
                           line-height:1.6;
                         "
                       >
-                        Please keep this Case ID for your records. You may
-                        need it if you want to request removal of your story
-                        in the future.
+                        Please keep this Case ID for your records. It can be
+                        used to reference your story and removal request.
                       </p>
 
                     </div>
@@ -169,14 +169,14 @@ const storySubmitted = (name = "there", caseId = "") => {
                   </td>
                 </tr>
 
-                <!-- Review Notice -->
+                <!-- Status -->
                 <tr>
                   <td style="padding:14px 35px 10px;">
 
                     <div
                       style="
-                        background:#f0fdf4;
-                        border:1px solid #bbf7d0;
+                        background:#fff7ed;
+                        border:1px solid #fed7aa;
                         border-radius:12px;
                         padding:16px;
                       "
@@ -184,14 +184,12 @@ const storySubmitted = (name = "there", caseId = "") => {
                       <p
                         style="
                           margin:0;
-                          color:#166534;
+                          color:#9a3412;
                           font-size:15px;
                           line-height:1.6;
                         "
                       >
-                        Your story is now in review. Please allow our team
-                        some time to review your submission before it is
-                        published.
+                        <strong>Status:</strong> Removal request under review.
                       </p>
                     </div>
 
@@ -254,4 +252,4 @@ const storySubmitted = (name = "there", caseId = "") => {
   `;
 };
 
-export default storySubmitted;
+export default storyRemovalRequestSubmitted;

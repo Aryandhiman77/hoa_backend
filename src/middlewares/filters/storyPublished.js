@@ -1,15 +1,30 @@
-const storySubmitted = (name = "there", caseId = "") => {
+const storyPublished = (name = "there", hoaName = "your HOA", caseId = "") => {
   return `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Story Submitted Successfully</title>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0"
+        />
+        <title>Your Story Has Been Published</title>
       </head>
 
-      <body style="margin:0; padding:0; background:#f4f8fb; font-family:Arial, sans-serif;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f8fb; padding:30px 15px;">
+      <body
+        style="
+          margin:0;
+          padding:0;
+          background:#f4f8fb;
+          font-family:Arial, sans-serif;
+        "
+      >
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          style="background:#f4f8fb; padding:30px 15px;"
+        >
           <tr>
             <td align="center">
 
@@ -17,7 +32,13 @@ const storySubmitted = (name = "there", caseId = "") => {
                 width="100%"
                 cellpadding="0"
                 cellspacing="0"
-                style="max-width:600px; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,0.08);"
+                style="
+                  max-width:600px;
+                  background:#ffffff;
+                  border-radius:16px;
+                  overflow:hidden;
+                  box-shadow:0 8px 30px rgba(0,0,0,0.08);
+                "
               >
 
                 <!-- Logo -->
@@ -41,7 +62,7 @@ const storySubmitted = (name = "there", caseId = "") => {
                         background:#e8f8ef;
                         border-radius:50%;
                         line-height:70px;
-                        color:#1faa59;
+                        color:#16a34a;
                         font-size:38px;
                         font-weight:bold;
                       "
@@ -62,7 +83,7 @@ const storySubmitted = (name = "there", caseId = "") => {
                         line-height:1.3;
                       "
                     >
-                      Story Submitted Successfully
+                      Your Story Has Been Published
                     </h1>
                   </td>
                 </tr>
@@ -90,8 +111,9 @@ const storySubmitted = (name = "there", caseId = "") => {
                         line-height:1.7;
                       "
                     >
-                      Thank you for submitting your story. We have received
-                      your submission successfully.
+                      We're happy to let you know that your story associated
+                      with <strong>${hoaName}</strong> has been published
+                      successfully on the Home Owners Attorney website.
                     </p>
 
                     <p
@@ -102,74 +124,98 @@ const storySubmitted = (name = "there", caseId = "") => {
                         line-height:1.7;
                       "
                     >
-                      Our team will review your submission before it is
-                      published. If we need any additional details, we will
-                      contact you using the email address you provided.
+                      Your story is now publicly available and can be viewed
+                      by visitors to our website.
                     </p>
 
                   </td>
                 </tr>
 
-                <!-- Case ID -->
+                <!-- Story Details -->
                 <tr>
                   <td style="padding:24px 35px 10px;">
 
                     <div
                       style="
-                        background:#f0fdfa;
-                        border:1px solid #99f6e4;
+                        background:#f8fafc;
+                        border:1px solid #e2e8f0;
                         border-radius:12px;
                         padding:18px;
-                        text-align:center;
                       "
                     >
 
                       <p
                         style="
-                          margin:0 0 8px;
-                          color:#475569;
-                          font-size:13px;
-                          line-height:1.5;
-                          font-weight:600;
-                          text-transform:uppercase;
-                          letter-spacing:0.5px;
-                        "
-                      >
-                        Your Story Case ID
-                      </p>
-
-                      <p
-                        style="
-                          margin:0;
-                          color:#0f766e;
-                          font-size:24px;
-                          line-height:1.4;
+                          margin:0 0 12px;
+                          color:#1f2937;
+                          font-size:15px;
                           font-weight:700;
-                          letter-spacing:1px;
                         "
                       >
-                        ${caseId}
+                        Story Details
                       </p>
 
-                      <p
-                        style="
-                          margin:10px 0 0;
-                          color:#64748b;
-                          font-size:13px;
-                          line-height:1.6;
-                        "
+                      <table
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
                       >
-                        Please keep this Case ID for your records. You may
-                        need it if you want to request removal of your story
-                        in the future.
-                      </p>
+
+                        <tr>
+                          <td
+                            style="
+                              padding:6px 0;
+                              color:#64748b;
+                              font-size:14px;
+                              width:40%;
+                            "
+                          >
+                            HOA Name
+                          </td>
+
+                          <td
+                            style="
+                              padding:6px 0;
+                              color:#1f2937;
+                              font-size:14px;
+                              font-weight:600;
+                            "
+                          >
+                            ${hoaName}
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td
+                            style="
+                              padding:6px 0;
+                              color:#64748b;
+                              font-size:14px;
+                            "
+                          >
+                            Case ID
+                          </td>
+
+                          <td
+                            style="
+                              padding:6px 0;
+                              color:#0f766e;
+                              font-size:14px;
+                              font-weight:700;
+                            "
+                          >
+                            ${caseId}
+                          </td>
+                        </tr>
+
+                      </table>
 
                     </div>
 
                   </td>
                 </tr>
 
-                <!-- Review Notice -->
+                <!-- Status -->
                 <tr>
                   <td style="padding:14px 35px 10px;">
 
@@ -189,11 +235,28 @@ const storySubmitted = (name = "there", caseId = "") => {
                           line-height:1.6;
                         "
                       >
-                        Your story is now in review. Please allow our team
-                        some time to review your submission before it is
-                        published.
+                        <strong>Status:</strong> Published
                       </p>
                     </div>
+
+                  </td>
+                </tr>
+
+                <!-- Case ID Note -->
+                <tr>
+                  <td style="padding:14px 35px 0;">
+
+                    <p
+                      style="
+                        margin:0;
+                        color:#64748b;
+                        font-size:14px;
+                        line-height:1.6;
+                      "
+                    >
+                      Please keep your Case ID for your records. You may need
+                      it if you contact us regarding your story in the future.
+                    </p>
 
                   </td>
                 </tr>
@@ -254,4 +317,4 @@ const storySubmitted = (name = "there", caseId = "") => {
   `;
 };
 
-export default storySubmitted;
+export default storyPublished;

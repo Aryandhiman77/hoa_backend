@@ -33,7 +33,13 @@ const notificationSchema = new mongoose.Schema(
 
     relatedModule: {
       type: String,
-      enum: ["contact", "story", "attorney", "non-legal-advocate"],
+      enum: [
+        "contact",
+        "story",
+        "attorney",
+        "non-legal-advocate",
+        "story-removal-request",
+      ],
       default: "general",
     },
 

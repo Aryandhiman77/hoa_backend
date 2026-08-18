@@ -31,6 +31,11 @@ import bcrypt from "bcrypt";
 import Notification from "../Models/admin/notification.js";
 import NonLegalAdvocate from "../Models/submissionsQueue/nonLegalAdvocate.js";
 import Contact from "../Models/submissionsQueue/contact.js";
+import RemovalRequest from "../Models/submissionsQueue/removalRequest.js";
+import storyRemoved from "../html/storyRemoved.js";
+import storyPublished from "../middlewares/filters/storyPublished.js";
+import storyUnpublished from "../html/storyUnpublished.js";
+import storyUpdated from "../html/storyUpdated.js";
 
 export const getAdminLogin = asyncHandler(async (req, res) => {
   const email = req.body?.email;
@@ -264,6 +269,55 @@ export const getStoryDetails = asyncHandler(async (req, res) => {
   return res.status(200).json(ApiResponse.success("Story fetched.", saved));
 });
 
+export const getRemovalRequests = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 10;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = req.sorting_query || { createdAt: -1 };
+
+  const [requests, totalDocuments] = await Promise.all([
+    RemovalRequest.find(req.request_search)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .lean(),
+    RemovalRequest.countDocuments(req.request_search),
+  ]);
+  return res
+    .status(201)
+    .json(ApiResponse.paginated(requests, page + 1, limit, totalDocuments));
+});
+
+export const getStoryByCaseId = asyncHandler(async (req, res) => {
+  if (!req.params?.caseId) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found.",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const story = await Story.findOne({
+    caseId: req.params.caseId,
+  })
+    .select(
+      "-_id -updatedAt -flagReason -adminNotes -isApproved -isPublished -status -story_disclaimer -story_consent",
+    )
+    .lean();
+  if (!story) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found.",
+      "STORY_NOT_FOUND",
+    );
+  }
+  if (story.story_anonymous) {
+    delete story["story_name"];
+    delete story["story_email"];
+    delete story["story_phone"];
+  }
+  return res.status(200).json(ApiResponse.success("Story found.", story));
+});
+
 export const updateStoryDetails = asyncHandler(async (req, res) => {
   const storyId = req.params?.id;
   if (!storyId)
@@ -294,6 +348,16 @@ export const updateStoryDetails = asyncHandler(async (req, res) => {
 
   const savedStory = await story.save();
 
+  await mailSender({
+    to: savedStory.story_email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Story published",
+    html: storyUpdated(
+      savedStory.story_name,
+      savedStory.story_hoa_name,
+      savedStory.caseId,
+    ),
+  });
   return res
     .status(200)
     .json(ApiResponse.success("Story updated.", savedStory));
@@ -322,9 +386,67 @@ export const flagStory = asyncHandler(async (req, res) => {
       "STORY_NOT_FOUND",
     );
   }
+
+  await mailSender({
+    to: updated.story_email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Story published",
+    html: storyFlagged(
+      updated.story_name,
+      updated.story_hoa_name,
+      updated.caseId,
+      updated.flagReason,
+    ),
+  });
+
   return res.status(200).json(ApiResponse.success("Story flagged.", updated));
 });
 
+export const removeStory = asyncHandler(async (req, res) => {
+  const { caseId } = req.params;
+  if (!caseId) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const updated = await Story.findOneAndUpdate(
+    {
+      caseId: caseId.toUpperCase(),
+      status: "published",
+    },
+    {
+      $set: {
+        status: "removed",
+        removedAt: new Date(),
+      },
+    },
+    {
+      new: true,
+    },
+  );
+  console.log(updated);
+  if (!updated) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+  await mailSender({
+    to: updated.story_email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Story removed",
+    html: storyRemoved(
+      updated.story_name,
+      updated.story_hoa_name,
+      updated.caseId.toUpperCase(),
+    ),
+  });
+
+  return res.status(200).json(ApiResponse.success("Story removed.", updated));
+});
 export const approveStory = asyncHandler(async (req, res) => {
   if (!req.params?.id) {
     throw new NotFoundError(
@@ -345,6 +467,16 @@ export const approveStory = asyncHandler(async (req, res) => {
       "STORY_NOT_FOUND",
     );
   }
+  await mailSender({
+    to: updated.story_email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Story removed",
+    html: storyApproved(
+      updated.story_name,
+      updated.story_hoa_name,
+      updated.caseId.toUpperCase(),
+    ),
+  });
   return res.status(200).json(ApiResponse.success("Story approved.", updated));
 });
 
@@ -374,6 +506,18 @@ export const publishStory = asyncHandler(async (req, res) => {
   story.isPublished = true;
   story.status = "published";
   const saved = await story.save();
+
+  await mailSender({
+    to: story.story_email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "Your Story Has Been Published",
+    html: storyPublished(
+      story.story_name,
+      story.story_hoa_name,
+      story.caseId.toUpperCase(),
+    ),
+  });
+
   return res.status(200).json(ApiResponse.success("Story published.", saved));
 });
 
@@ -403,6 +547,18 @@ export const unpublishStory = asyncHandler(async (req, res) => {
   story.isPublished = false;
   story.status = "unpublished";
   const saved = await story.save();
+
+  await mailSender({
+    to: story.story_email,
+    from: process.env.SUPPORT_MAIL,
+    subject: "HOA Story unpublished",
+    html: storyUnpublished(
+      story.story_name,
+      story.story_hoa_name,
+      story.caseId.toUpperCase(),
+    ),
+  });
+
   return res.status(200).json(ApiResponse.success("Story unpublished.", saved));
 });
 

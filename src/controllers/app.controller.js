@@ -28,6 +28,8 @@ import HomePageCMS from "../Models/admin/cms/homePageCMS.js";
 import AboutPageCMS from "../Models/admin/cms/aboutPageCMS.js";
 import NonLegalAdvocateCMS from "../Models/admin/cms/nonLegalAdvocatePageCMS.js";
 import ContactPageCMS from "../Models/admin/cms/contactPageCMS.js";
+import RemovalRequest from "../Models/submissionsQueue/removalRequest.js";
+import storyRemovalRequestSubmitted from "../html/removalRequestSubmitted.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -103,12 +105,12 @@ export const createStory = AsyncHandler(async (req, res, next) => {
       from: "support@hoa.com",
       to: req.data.story_email,
       subject: "Story submitted",
-      html: storySubmitted(saved.story_name),
+      html: storySubmitted(saved.story_name, saved.caseId),
     });
     /// admin side notification (uncomment if needed)
     await Notification.create({
       title: "Story Form Submitted",
-      description: "A new user has submitted a story.",
+      description: `A new story has been submitted by a user. Case id assigned : ${saved.caseId} `,
       type: "info",
       receiverRole: "admin",
       relatedModule: "story",
@@ -287,6 +289,79 @@ export const getStoryByFilters = AsyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(ApiResponse.paginated(stories, page + 1, limit, totalDocuments));
+});
+
+export const requestForRemoval = AsyncHandler(async (req, res) => {
+  if (!req.data.caseId || !req.data.email) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found.",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const story = await Story.findOne({
+    caseId: req.data.caseId,
+    story_email: req.data.email,
+  })
+    .select("_id")
+    .lean();
+  if (!story) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found.",
+      "STORY_NOT_FOUND",
+    );
+  }
+  const isExistingRequest = await RemovalRequest.findOne({
+    caseId: req.data.caseId,
+    status: {
+      $in: ["new", "under_review"],
+    },
+  })
+    .select("_id")
+    .lean();
+  if (isExistingRequest) {
+    throw new BadRequestError(
+      "Story removal request already exist for this caseId.",
+      "Story removal request already exists.",
+      "STORY_REMOVAL_REQUEST_ALREADY_EXISTS",
+    );
+  }
+
+  const created = await RemovalRequest.create(req.data);
+
+  if (!created) {
+    throw new BadRequestError(
+      "Failed to request removal.",
+      "Failed to request removal.",
+      "FAILED_REQUEST_FOR_REMOVAL",
+    );
+  }
+
+  await Notification.create({
+    title: "Story Removal request Submitted",
+    description: `Story Removal request came for case id : ${req.params.caseId}.`,
+    type: "info",
+    receiverRole: "admin",
+    relatedModule: "story-removal-request",
+    relatedId: created._id,
+    actionUrl: `/admin/story-removal-requests/${created._id}`,
+  });
+
+  await mailSender({
+    from: "support@hoa.com",
+    to: req.data.email,
+    subject: "Story removal request submitted.",
+    html: storyRemovalRequestSubmitted(created.name, created.caseId),
+  });
+  const responseData = created.toObject();
+  delete responseData._id;
+  delete responseData.__v;
+  return res
+    .status(201)
+    .json(
+      ApiResponse.created("Story Removal request submitted.", responseData),
+    );
 });
 
 export const getStoryBySlug = AsyncHandler(async (req, res) => {

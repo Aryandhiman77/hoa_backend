@@ -76,6 +76,9 @@ import {
   updateNonLegalAdvocateDetails,
   getSingleContact,
   getSingleResource,
+  getStoryByCaseId,
+  getRemovalRequests,
+  removeStory,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -137,6 +140,7 @@ import { editContactStatusValidation } from "../validations/adminValidations/edi
 import { nonLegalAdvocateFilters } from "../middlewares/filters/admin/nonLegalAdvocate.js";
 import { nonLegalAdvocateStatusValidation } from "../validations/adminValidations/nonLegalAdvocateStatusValidation.js";
 import { nonLegalAdvocateValidationSchema } from "../validations/adminValidations/nonLegalAdvocateValidations.js";
+import requestSearchFilter from "../middlewares/filters/admin/requestSearchFilter.js";
 const adminRouter = Router();
 
 adminRouter.post(
@@ -175,7 +179,15 @@ adminRouter
   .patch("/story/update-status/approve/:id", approveStory)
   .patch("/story/update-status/publish/:id", publishStory)
   .patch("/story/update-status/unpublish/:id", unpublishStory)
-  .patch("/story/update-status/archive/:id", archiveStory);
+  .patch("/story/update-status/archive/:id", archiveStory)
+  .get(
+    "/story/removal-requests",
+    pagination,
+    requestSearchFilter,
+    getRemovalRequests,
+  )
+  .get("/story/:caseId", getStoryByCaseId)
+  .patch("/story/remove/:caseId", removeStory);
 
 // attorneys listing (tested and working properly)
 adminRouter
