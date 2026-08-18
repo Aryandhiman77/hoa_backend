@@ -236,7 +236,7 @@ export const getStoriesByQuery = asyncHandler(async (req, res) => {
       .limit(limit)
       .skip(skip)
       .select(
-        "story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous isPublished status createdAt updatedAt",
+        "story_name story_city story_state story_hoa_name story_issue_type story_summary story_anonymous isPublished status createdAt updatedAt caseId",
       )
       .lean(),
     Story.countDocuments(req.story_query).lean(),

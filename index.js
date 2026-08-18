@@ -16,7 +16,7 @@ import { seedAdmin } from "./src/configs/admin-seeder.js";
 import { cwd } from "process";
 
 config();
-app.set("trust proxy", true);
+app.set("trust proxy", "loopback");
 app.use(cookieParser());
 app.use(helmet());
 const allowedOrigins = [
