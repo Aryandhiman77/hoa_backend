@@ -340,7 +340,7 @@ export const requestForRemoval = AsyncHandler(async (req, res) => {
 
   await Notification.create({
     title: "Story Removal request Submitted",
-    description: `Story Removal request came for case id : ${req.params.caseId}.`,
+    description: `Story Removal request came for case id : ${created.caseId}.`,
     type: "info",
     receiverRole: "admin",
     relatedModule: "story-removal-request",
