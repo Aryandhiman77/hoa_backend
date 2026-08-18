@@ -46,7 +46,7 @@ const removalRequestValidation = Joi.object({
       "string.empty": "{{#label}} cannot be empty.",
       "string.base": "{{#label}} must be a string.",
     })
-    .label("Removal Reason"),
+    .label("Correction or removal Reason"),
 });
 
 export default removalRequestValidation;
