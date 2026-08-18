@@ -119,9 +119,14 @@ export const createStory = AsyncHandler(async (req, res, next) => {
     });
     return res.status(201).json(ApiResponse.created("Story submitted.", saved));
   } catch (error) {
-    if (error?.message?.includes("story_slug")) {
-      error.message =
-        "Story HOA name already exists, please enter different HOA name.";
+    if (error.code === 11000 && error.keyPattern?.story_slug) {
+      throw new BadRequestError(
+        "An HOA with this name already has a story.",
+
+        "An HOA with this name already has a story.",
+
+        "STORY_HOA_ALREADY_EXISTS",
+      );
     }
     if (req.files) {
       unlinkFiles(req.files);
