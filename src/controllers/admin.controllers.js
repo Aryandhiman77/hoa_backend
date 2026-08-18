@@ -299,22 +299,13 @@ export const getStoryByCaseId = asyncHandler(async (req, res) => {
   }
   const story = await Story.findOne({
     caseId: req.params.caseId,
-  })
-    .select(
-      "-_id -updatedAt -flagReason -adminNotes -isApproved -isPublished -status -story_disclaimer -story_consent",
-    )
-    .lean();
+  }).lean();
   if (!story) {
     throw new NotFoundError(
       "Story not found.",
       "Story not found.",
       "STORY_NOT_FOUND",
     );
-  }
-  if (story.story_anonymous) {
-    delete story["story_name"];
-    delete story["story_email"];
-    delete story["story_phone"];
   }
   return res.status(200).json(ApiResponse.success("Story found.", story));
 });
