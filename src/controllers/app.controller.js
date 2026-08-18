@@ -314,17 +314,21 @@ export const requestForRemoval = AsyncHandler(async (req, res) => {
   }
   const isExistingRequest = await RemovalRequest.findOne({
     caseId: req.data.caseId,
-    status: {
-      $in: ["new", "under_review"],
-    },
   })
     .select("_id")
     .lean();
-  if (isExistingRequest) {
+  if (isExistingRequest.status === "new") {
     throw new BadRequestError(
       "Story removal request already exist for this caseId.",
       "Story removal request already exists.",
       "STORY_REMOVAL_REQUEST_ALREADY_EXISTS",
+    );
+  }
+  if (isExistingRequest.status === "completed") {
+    throw new BadRequestError(
+      "Story already removed",
+      "Story already removed.",
+      "STORY_ALREAD_REMOVED",
     );
   }
 
