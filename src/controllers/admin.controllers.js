@@ -544,7 +544,7 @@ export const approveStory = asyncHandler(async (req, res) => {
   await mailSender({
     to: updated.story_email,
     from: process.env.SUPPORT_MAIL,
-    subject: "HOA Story removed",
+    subject: "HOA Story approved",
     html: storyApproved(
       updated.story_name,
       updated.story_hoa_name,
