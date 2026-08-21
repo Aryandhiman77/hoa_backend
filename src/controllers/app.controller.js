@@ -30,6 +30,10 @@ import NonLegalAdvocateCMS from "../Models/admin/cms/nonLegalAdvocatePageCMS.js"
 import ContactPageCMS from "../Models/admin/cms/contactPageCMS.js";
 import RemovalRequest from "../Models/submissionsQueue/removalRequest.js";
 import storyRemovalRequestSubmitted from "../html/removalRequestSubmitted.js";
+import NewsletterSubscriber from "../Models/submissionsQueue/newsletterSubscriber.js";
+import crypto from "crypto";
+import newsletterSubscription from "../html/newsletterSubscription.js";
+import newsletterUnsubscribed from "../html/newsletterUnsubscribed.js";
 
 // 4.1 contact form api
 export const saveContactForm = AsyncHandler(async (req, res) => {
@@ -563,4 +567,131 @@ export const getContactPageContent = AsyncHandler(async (req, res) => {
     .select("-_id -__v -createdAt")
     .lean();
   return res.status(200).json(ApiResponse.success("Content found.", content));
+});
+
+export const subscribeNewsletter = AsyncHandler(async (req, res) => {
+  const { email, firstName } = req.data;
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const existing = await NewsletterSubscriber.findOne({
+    email: normalizedEmail,
+  });
+  const unsubscribeToken = crypto.randomBytes(32).toString("hex");
+  const unsubscribeUrl = `${process.env.APP_URL}/newsletter/unsubscribe/${unsubscribeToken}`;
+  if (existing) {
+    if (existing.status === "subscribed") {
+      return res
+        .status(200)
+        .json(ApiResponse.success("You are already subscribed."));
+    }
+
+    existing.status = "subscribed";
+    existing.firstName = firstName || existing.firstName;
+    existing.consent = true;
+    existing.consentAt = new Date();
+    existing.subscribedAt = new Date();
+    existing.unsubscribedAt = null;
+
+    const saved = await existing.save();
+    if (!saved) {
+      throw new BadRequestError(
+        "Failed to save your request, try again.",
+        "failed to save",
+        "FAILED_TO_SAVE_NEWSLETTER_REQUEST",
+      );
+    }
+
+    await mailSender({
+      from: process.env.SUPPORT_MAIL,
+      to: subscriber.email,
+      subject: "You're subscribed to the HOA Nightmares newsletter",
+      html: newsletterSubscription(
+        subscriber.firstName || "there",
+        subscriber.email,
+        unsubscribeUrl,
+      ),
+    });
+    return res
+      .status(200)
+      .json(ApiResponse.success("You have been subscribed again."));
+  }
+
+  const subscriber = await NewsletterSubscriber.create({
+    email: normalizedEmail,
+    firstName,
+    consent: true,
+    consentAt: new Date(),
+    status: "subscribed",
+    subscribedAt: new Date(),
+    unsubscribeToken,
+  });
+
+  await mailSender({
+    from: process.env.SUPPORT_MAIL,
+    to: subscriber.email,
+    subject: "You're subscribed to the HOA Nightmares newsletter",
+    html: newsletterSubscription(
+      subscriber.firstName || "there",
+      subscriber.email,
+      unsubscribeUrl,
+    ),
+  });
+
+  const response = subscriber.toObject();
+  delete response._id;
+  delete response.__v;
+  delete response.unsubscribeToken;
+  delete response.consent;
+  delete response.createdAt;
+  delete response.updatedAt;
+
+  return res
+    .status(201)
+    .json(ApiResponse.created("Successfully subscribed.", response));
+});
+
+export const unSubscribeNewsletter = AsyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  if (!token) {
+    throw new BadRequestError(
+      "Invalid unsubscribe link.",
+      "Invalid unsubscribe link.",
+      "INVALID_UNSUBSCRIBE_TOKEN",
+    );
+  }
+
+  const subscriber = await NewsletterSubscriber.findOne({
+    unsubscribeToken: token,
+  });
+
+  if (!subscriber) {
+    throw new NotFoundError(
+      "Subscriber not found.",
+      "Subscriber not found.",
+      "SUBSCRIBER_NOT_FOUND",
+    );
+  }
+
+  if (subscriber.status === "unsubscribed") {
+    return res
+      .status(200)
+      .json(ApiResponse.success("You are already unsubscribed."));
+  }
+
+  subscriber.status = "unsubscribed";
+  subscriber.unsubscribedAt = new Date();
+
+  const saved = await subscriber.save();
+
+  await mailSender({
+    from: process.env.SUPPORT_MAIL,
+    to: saved.email,
+    subject: "You have been unsubscribed from the HOA Nightmares newsletter",
+    html: newsletterUnsubscribed(saved.firstName || "there", saved.email),
+  });
+  return res
+    .status(200)
+    .json(ApiResponse.success("You have been unsubscribed successfully."));
 });

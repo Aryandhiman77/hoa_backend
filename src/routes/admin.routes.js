@@ -80,6 +80,9 @@ import {
   getRemovalRequests,
   removeStory,
   rejectStoryRemovalRequest,
+  exportSubscribers,
+  getNewsletterSubscribers,
+  unsubscribeNewsletter,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -142,6 +145,7 @@ import { nonLegalAdvocateFilters } from "../middlewares/filters/admin/nonLegalAd
 import { nonLegalAdvocateStatusValidation } from "../validations/adminValidations/nonLegalAdvocateStatusValidation.js";
 import { nonLegalAdvocateValidationSchema } from "../validations/adminValidations/nonLegalAdvocateValidations.js";
 import requestSearchFilter from "../middlewares/filters/admin/requestSearchFilter.js";
+import newsletterFilters from "../middlewares/filters/admin/newsletterFilters.js";
 const adminRouter = Router();
 
 adminRouter.post(
@@ -437,5 +441,16 @@ adminRouter.patch("/notification/:id/read", readNotification);
 adminRouter.delete("/notification/:id", deleteNotification);
 
 adminRouter.get("/records-count", getDashboardRecordsCount);
+
+adminRouter.get(
+  "/newsletter/subscribers",
+  newsletterFilters,
+  getNewsletterSubscribers,
+);
+adminRouter.get("/newsletter/subscribers/export", exportSubscribers);
+adminRouter.patch(
+  "/newsletter/subscribers/:id/unsubscribe",
+  unsubscribeNewsletter,
+);
 
 export default adminRouter;

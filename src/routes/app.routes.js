@@ -22,6 +22,8 @@ import {
   getContactPageContent,
   getStoryBySlug,
   requestForRemoval,
+  subscribeNewsletter,
+  unSubscribeNewsletter,
 } from "../controllers/app.controller.js";
 import { createStoryValidation } from "../validations/story.validations.js";
 import { uploadMultiple } from "../middlewares/multer.js";
@@ -37,6 +39,7 @@ import { blogSearchFilter } from "../middlewares/filters/blogSearchFilter.js";
 import faqFilters from "../middlewares/filters/faqFilters.js";
 import { resourceFilters } from "../middlewares/filters/resourceFilters.js";
 import removalRequestValidation from "../validations/removalRequestValidations.js";
+import { newsletterSubscribeValidation } from "../validations/newsletterSubscribeValidation.js";
 const appRoutes = express.Router();
 
 appRoutes.post("/contact-form", validate(contactSchema), saveContactForm); //✅
@@ -119,5 +122,13 @@ appRoutes.get(
   getNonLegalAdvocatePageContent,
 );
 appRoutes.get("/contact-page-content", getContactPageContent);
+
+appRoutes.post(
+  "/newsletters/subscribe",
+  validate(newsletterSubscribeValidation),
+  subscribeNewsletter,
+);
+
+appRoutes.post("/newsletters/unsubscribe/:token", unSubscribeNewsletter);
 
 export default appRoutes;

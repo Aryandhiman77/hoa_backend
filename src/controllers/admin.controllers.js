@@ -37,6 +37,8 @@ import storyPublished from "../middlewares/filters/storyPublished.js";
 import storyUnpublished from "../html/storyUnpublished.js";
 import storyUpdated from "../html/storyUpdated.js";
 import storyRemovalRequestRejected from "../html/removalRequestRejected.js";
+import NewsletterSubscriber from "../Models/submissionsQueue/newsletterSubscriber.js";
+import newsletterUnsubscribed from "../html/newsletterUnsubscribed.js";
 
 export const getAdminLogin = asyncHandler(async (req, res) => {
   const email = req.body?.email;
@@ -2447,4 +2449,113 @@ export const getDashboardRecordsCount = asyncHandler(async (req, res) => {
       pages,
     }),
   );
+});
+
+export const getNewsletterSubscribers = asyncHandler(async (req, res) => {
+  const limit = req.pagination_query?.limit || 5;
+  const skip = req.pagination_query?.skip || 0;
+  const page = req.pagination_query?.page || 0;
+  const sorting = { createdAt: -1 };
+
+  const [newsletterSubscribers, totalDocuments] = await Promise.all([
+    NewsletterSubscriber.find(req.newsletter_filters)
+      .sort(sorting)
+      .limit(limit)
+      .skip(skip)
+      .lean(),
+    NewsletterSubscriber.countDocuments(req.newsletter_filters).lean(),
+  ]);
+  return res
+    .status(201)
+    .json(
+      ApiResponse.paginated(
+        newsletterSubscribers,
+        page + 1,
+        limit,
+        totalDocuments,
+      ),
+    );
+});
+
+export const exportSubscribers = asyncHandler(async (req, res) => {
+  const subscribers = await NewsletterSubscriber.find()
+    .select("email firstName status subscribedAt unsubscribedAt")
+    .sort({ subscribedAt: -1 })
+    .lean();
+
+  const headers = [
+    "Email",
+    "First Name",
+    "Status",
+    "Subscribed At",
+    "Unsubscribed At",
+  ];
+
+  const rows = subscribers.map((subscriber) => [
+    subscriber.email,
+    subscriber.firstName || "",
+    subscriber.status,
+    subscriber.subscribedAt ? subscriber.subscribedAt.toISOString() : "",
+    subscriber.unsubscribedAt ? subscriber.unsubscribedAt.toISOString() : "",
+  ]);
+
+  const csv = [headers, ...rows]
+    .map((row) =>
+      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
+    )
+    .join("\n");
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="hoa-newsletter-subscribers.csv"',
+  );
+
+  return res.status(200).send(csv);
+});
+
+export const unsubscribeNewsletter = asyncHandler(async (req, res) => {
+  if (!req.params?.id) {
+    throw new NotFoundError(
+      "User haven't subscribed to newsletters yet.",
+      "Subscriber not found",
+      "SUBSCRIBER_NOT_FOUND",
+    );
+  }
+  const subscriber = await NewsletterSubscriber.findById(req.params.id);
+  if (!subscriber) {
+    throw new NotFoundError(
+      "User haven't subscribed to newsletters yet.",
+      "Subscriber not found",
+      "SUBSCRIBER_NOT_FOUND",
+    );
+  }
+  if (subscriber.status === "unsubscribed") {
+    throw new BadRequestError(
+      "User already unsubscribed.",
+      "User already unsubscribed",
+      "USER_ALREADY_UNSUBSCRIBED",
+    );
+  }
+
+  subscriber.status = "unsubscribed";
+  subscriber.unsubscribedAt = new Date();
+  const saved = await subscriber.save();
+  if (!saved) {
+    throw new BadRequestError(
+      "Failed to save, try again.",
+      "failed to save",
+      "FAILED_TO_SAVE",
+    );
+  }
+
+  await mailSender({
+    from: process.env.SUPPORT_MAIL,
+    to: saved.email,
+    subject: "You have been unsubscribed from the HOA Nightmares newsletter",
+    html: newsletterUnsubscribed(saved.firstName || "there", saved.email),
+  });
+  return res
+    .status(200)
+    .json(ApiResponse.success("Newsletter unsubscribed.", saved));
 });
