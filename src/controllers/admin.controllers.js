@@ -2502,8 +2502,12 @@ export const exportSubscribers = asyncHandler(async (req, res) => {
     subscriber.email,
     subscriber.firstName || "",
     subscriber.status,
-    subscriber.subscribedAt ? subscriber.subscribedAt.toISOString() : "",
-    subscriber.unsubscribedAt ? subscriber.unsubscribedAt.toISOString() : "",
+    subscriber.subscribedAt
+      ? new Date(subscriber.subscribedAt.toISOString())
+      : "",
+    subscriber.unsubscribedAt
+      ? new Date(subscriber.unsubscribedAt.toISOString())
+      : "",
   ]);
 
   const csv = [headers, ...rows]
