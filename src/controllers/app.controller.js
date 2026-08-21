@@ -604,11 +604,11 @@ export const subscribeNewsletter = AsyncHandler(async (req, res) => {
 
     await mailSender({
       from: process.env.SUPPORT_MAIL,
-      to: subscriber.email,
+      to: saved.email,
       subject: "You're subscribed to the HOA Nightmares newsletter",
       html: newsletterSubscription(
-        subscriber.firstName || "there",
-        subscriber.email,
+        saved.firstName || "there",
+        saved.email,
         unsubscribeUrl,
       ),
     });
