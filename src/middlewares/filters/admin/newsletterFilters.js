@@ -2,11 +2,8 @@ const newsletterFilters = (req, res, next) => {
   const { search, status } = req.query;
   let query = {};
   const normalizedStatus = status?.toLowerCase()?.trim();
-  const statuses = ["subscribed", "unsubscribed", "all"];
-  if (
-    statuses.includes(normalizedStatus) &&
-    normalizedStatus !== statuses["all"]
-  ) {
+  const statuses = ["subscribed", "unsubscribed"];
+  if (statuses.includes(normalizedStatus)) {
     query.status = status;
   }
   if (search) {

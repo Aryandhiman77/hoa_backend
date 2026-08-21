@@ -2452,13 +2452,14 @@ export const getDashboardRecordsCount = asyncHandler(async (req, res) => {
 });
 
 export const getNewsletterSubscribers = asyncHandler(async (req, res) => {
-  const limit = req.pagination_query?.limit || 5;
+  const limit = req.pagination_query?.limit || 10;
   const skip = req.pagination_query?.skip || 0;
   const page = req.pagination_query?.page || 0;
   const sorting = { createdAt: -1 };
 
   const [newsletterSubscribers, totalDocuments] = await Promise.all([
     NewsletterSubscriber.find(req.newsletter_filters)
+      .select("-unsubscribeToken")
       .sort(sorting)
       .limit(limit)
       .skip(skip)
@@ -2466,7 +2467,7 @@ export const getNewsletterSubscribers = asyncHandler(async (req, res) => {
     NewsletterSubscriber.countDocuments(req.newsletter_filters).lean(),
   ]);
   return res
-    .status(201)
+    .status(200)
     .json(
       ApiResponse.paginated(
         newsletterSubscribers,
@@ -2478,7 +2479,7 @@ export const getNewsletterSubscribers = asyncHandler(async (req, res) => {
 });
 
 export const exportSubscribers = asyncHandler(async (req, res) => {
-  const subscribers = await NewsletterSubscriber.find()
+  const subscribers = await NewsletterSubscriber.find({ status: "subscribed" })
     .select("email firstName status subscribedAt unsubscribedAt")
     .sort({ subscribedAt: -1 })
     .lean();
@@ -2555,7 +2556,9 @@ export const unsubscribeNewsletter = asyncHandler(async (req, res) => {
     subject: "You have been unsubscribed from the HOA Nightmares newsletter",
     html: newsletterUnsubscribed(saved.firstName || "there", saved.email),
   });
+  const response = saved.toObject();
+  delete response.unsubscribeToken;
   return res
     .status(200)
-    .json(ApiResponse.success("Newsletter unsubscribed.", saved));
+    .json(ApiResponse.success("Newsletter unsubscribed.", response));
 });
