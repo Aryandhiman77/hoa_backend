@@ -2483,7 +2483,13 @@ export const exportSubscribers = asyncHandler(async (req, res) => {
     .select("email firstName status subscribedAt unsubscribedAt")
     .sort({ subscribedAt: -1 })
     .lean();
-
+  if (subscribers?.length === 0) {
+    throw new NotFoundError(
+      "No subscribers found.",
+      "No subscribers found.",
+      "NO_SUBSCRIBERS_FOUND",
+    );
+  }
   const headers = [
     "Email",
     "First Name",
