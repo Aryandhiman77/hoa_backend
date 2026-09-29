@@ -2572,3 +2572,50 @@ export const unsubscribeNewsletter = asyncHandler(async (req, res) => {
     .status(200)
     .json(ApiResponse.success("Newsletter unsubscribed.", response));
 });
+
+export const deleteStory = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+
+  const story = await Story.findById(id).select("story_uploads");
+
+  if (!story) {
+    throw new NotFoundError(
+      "Story not found.",
+      "Story not found",
+      "STORY_NOT_FOUND",
+    );
+  }
+
+  // Collect uploaded file paths
+  const paths = (story.story_uploads || [])
+    .map((upload) => upload.fileUrl)
+    .filter(Boolean);
+
+  // Delete story from database
+  const deletedStory = await Story.findByIdAndDelete(id);
+
+  if (!deletedStory) {
+    throw new NotFoundError(
+      "Failed to delete story.",
+      "Failed to delete story",
+      "STORY_FAILED_TO_DELETE",
+    );
+  }
+
+  // Delete uploaded files
+  if (paths.length > 0) {
+    await unlinkFilesFromServerUsingPath(paths);
+  }
+
+  return res
+    .status(200)
+    .json(ApiResponse.success("Story deleted successfully."));
+});

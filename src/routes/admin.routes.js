@@ -83,6 +83,7 @@ import {
   exportSubscribers,
   getNewsletterSubscribers,
   unsubscribeNewsletter,
+  deleteStory,
 } from "../controllers/admin.controllers.js";
 import { upload, uploadMultiple } from "../middlewares/multer.js";
 import {
@@ -193,7 +194,8 @@ adminRouter
   )
   .get("/story/:caseId", getStoryByCaseId)
   .patch("/story/reject-removal/:caseId", rejectStoryRemovalRequest)
-  .patch("/story/remove/:caseId", removeStory);
+  .patch("/story/remove/:caseId", removeStory)
+  .patch("/story/delete/:id", deleteStory);
 
 // attorneys listing (tested and working properly)
 adminRouter
