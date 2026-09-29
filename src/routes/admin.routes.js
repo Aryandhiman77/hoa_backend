@@ -195,7 +195,7 @@ adminRouter
   .get("/story/:caseId", getStoryByCaseId)
   .patch("/story/reject-removal/:caseId", rejectStoryRemovalRequest)
   .patch("/story/remove/:caseId", removeStory)
-  .patch("/story/delete/:id", deleteStory);
+  .delete("/story/delete/:id", deleteStory);
 
 // attorneys listing (tested and working properly)
 adminRouter
