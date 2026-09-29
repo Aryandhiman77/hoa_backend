@@ -2576,7 +2576,7 @@ export const unsubscribeNewsletter = asyncHandler(async (req, res) => {
 export const deleteStory = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+  if (!id) {
     throw new NotFoundError(
       "Story not found.",
       "Story not found",
